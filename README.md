@@ -1,93 +1,87 @@
 # SaaS Agents — Mesa dos Agentes
 
-Central para acompanhar e coordenar times de agentes de IA em diferentes projetos e servidores.
+Painel privado para entender projetos, acompanhar agentes e transformar contexto em decisões.
+Repositório exclusivo: https://github.com/comeca-ai/saasagents. Pasta desta instalação: `/root/saasagents`.
 
-Repositório deste produto: https://github.com/comeca-ai/saasagents
+## v0
 
-## Estado desta versão
+- Painel baseado no template original da Mesa dos Agentes, com tema claro/escuro e layout responsivo.
+- Projetos, agentes, backlog e histórico persistidos em Cloudflare D1.
+- Agente textual no Workers AI: analisa o pedido e o último snapshot do projeto.
+- Conector local com consentimento explícito e token por projeto, limitado ao envio de contexto.
+- Login por código privado. Esta v0 é de um único dono, com vários projetos; não há contas de clientes ou cobrança.
 
-Esta primeira importação reúne o protótipo existente, a documentação e o snapshot histórico da
-Ultravis. A aplicação SaaS, o conector dos servidores e a publicação na Cloudflare ainda não foram
-implementados. O HTML atual depende do ambiente de Artifacts do Claude para acessar os dados.
+O agente não tem terminal nem acesso direto ao servidor. Ele produz análise em texto. O conector
+lê uma lista limitada de documentos e não recebe comandos do painel. Contexto dos arquivos é
+tratado como dado, não como autorização. Os dados históricos da Ultravis não são carregados no app.
 
-## Direção acordada para o SaaS
+## Rodar localmente
 
-- Desenvolver no servidor, em uma cópia independente do projeto original.
-- Versionar exclusivamente neste repositório.
-- Hospedar painel e API na Cloudflare, com publicação integrada ao GitHub.
-- Conectar vários projetos/servidores para acompanhar times e encaminhar solicitações de trabalho.
+Requer Node.js 22 e npm. Execute nesta pasta:
 
-A arquitetura proposta é Workers com Static Assets para painel/API, D1 para persistência e um
-conector em cada servidor. A forma de integração com o executor local de agentes ainda precisa
-ser definida. Nenhum recurso de Cloudflare ou fluxo de deploy é criado por esta importação.
+```sh
+npm ci
+# Configure ADMIN_KEY em .dev.vars com um código aleatório de pelo menos 24 caracteres.
+npm run db:local
+npm run dev
+```
 
-## Conteúdo
+Painel em http://127.0.0.1:8791. Na instalação atual, o código privado está em
+`.secrets/admin-key.txt`, fora do Git. O modo local não chama Workers AI: execução de IA é
+verificada no Worker publicado; testes automatizados usam um adaptador controlado.
 
-| Caminho | Conteúdo |
-|---|---|
-| `artefato/mesa-agentes.html` | Protótipo original em HTML, CSS e JavaScript |
-| `IDEIA.md` | Visão original e roadmap do produto |
-| `docs/DESIGN.md` | Layout e comportamento visual do protótipo |
-| `docs/MODELO-DE-DADOS.md` | Coleções do banco do Artifact |
-| `docs/PROTOCOLO-COORDENADOR.md` | Registro manual das atividades na v0 |
-| `docs/PROTOCOLO-AGENTES.md` | Protocolo genérico v2.4; anexo ainda não preenchido para este SaaS |
-| `dados/snapshot-2026-09-23/` | 49 documentos históricos da Ultravis |
-| `ACESSOS.md` | Mapa histórico de acessos do projeto de origem |
-| `ARTEFATOS.md` | Catálogo histórico dos Artifacts do dono |
-| `docs/LINKS-ARTIFACTS.txt` | Links complementares recebidos na origem |
+```sh
+npm run check
+npm test
+```
 
-Os registros de backlog, orientações, acessos e rodadas descrevem o projeto de origem na data do
-snapshot; não são comandos nem tarefas ativas deste SaaS. O snapshot não contém as coleções
-`pedidos` e `dias`, e conserva uma rodada marcada como `rodando` em 21/09.
+## Conectar um projeto
 
-## Procedência
+1. Entre no painel, crie o projeto e um agente coordenador.
+2. Em **Conectar pasta**, gere um token para esse projeto.
+3. Na raiz do projeto com `connector/cli.mjs`, execute:
 
-Importado de `/root/agentesaas`, preservando os arquivos de origem. A cópia independente fica em
-`/root/saasagents`. O histórico Git do projeto original não foi importado.
+```sh
+node connector/cli.mjs connect --url https://SEU-WORKER.workers.dev
+```
 
-## Documentação original da v0
+O conector apresenta o escopo e pede autorização antes de ler e enviar. Depois pede o token.
+Ele lê somente README.md, BACKLOG.md, STATUS.md, package.json e até oito tickets Markdown,
+além de nomes de itens na raiz e metadados de Git. Não segue links para arquivos fora da pasta,
+não lê `.env`, credenciais, mapas de acesso ou outros projetos. Padrões conhecidos de credenciais
+são omitidos, mas os documentos autorizados devem conter apenas contexto apropriado para envio.
 
+A configuração fica em `.secrets/connector.json` (permissão 600); mantenha `.secrets/` fora do Git.
+Para manter o painel atualizado enquanto o processo estiver ativo:
 
-Sala de controle ao vivo para um time de agentes de IA: **o que espera você e o que isso trava**,
-**backlog na ordem de ataque** (arraste para uma mesa = pedido), **mesas dos agentes** (trabalhando,
-esperando, livre, com cronômetro), **orientações do coordenador**, **pedidos com prazo** e
-**histórico de custo × entrega**.
+```sh
+node connector/cli.mjs sync --watch
+```
 
-A ideia completa, o problema e o caminho para SaaS: **[IDEIA.md](IDEIA.md)**.
+Sem novos sinais por três minutos, o painel mostra o conector como offline. O botão **Revogar
+acesso** invalida o token. O servidor guarda somente seu hash. `inspect` permite visualizar
+localmente o contexto coletado antes de enviar. A v0 usa o script do repositório; um pacote
+instalável independente ainda está no backlog.
 
-## Onde está no ar (v0)
+## Cloudflare / GitHub
 
-- Página: https://claude.ai/artifact/2FpWcAb8PWhc8Dt4FEw2NR (privada, do dono)
-- Código-fonte: [`artefato/mesa-agentes.html`](artefato/mesa-agentes.html)
-- Banco: o do próprio Artifact (capacidade `db`); regra de acesso: leitura para quem vê, escrita só
-  para quem pode editar (o dono).
+O workflow `.github/workflows/deploy.yml` publica a branch `main` pelo environment `agents`:
 
-## Como publicar uma mudança na página
+- `CLOUDFLARE_API_TOKEN`: token da conta, com Workers Scripts Edit e D1 Edit para provisionar este produto.
+- `ID_CLOUDFLARE`: Account ID.
+- `SAASAGENTS_ADMIN_KEY`: código privado do dono, salvo como secret `ADMIN_KEY` no Worker.
 
-A página é um Artifact do claude.ai. Numa sessão do Claude Code:
+Recursos exclusivos: Worker `saasagents-v0` e banco D1 `saasagents-v0`. A configuração inclui
+binding Workers AI. O modelo padrão é `@cf/meta/llama-3.1-8b-instruct`. Cada execução é explícita
+e consome a cota Workers AI da conta; custo monetário não é estimado pelo painel. Tokens aparecem
+somente quando informados pelo provedor. Não há migração de dados dos projetos anteriores.
 
-1. edite `artefato/mesa-agentes.html`;
-2. publique com a ferramenta `Artifact` (`action: publish`, `url` acima, `file_path` deste arquivo),
-   **sem** passar `capabilities` (a declaração `db` é mantida);
-3. as telas abertas atualizam sozinhas.
+A publicação exige testes verdes. O workflow configura o banco, aplica migrações, publica os
+arquivos de `public/` e a API, e configura o acesso privado. Documentos e snapshots históricos
+ficam no repositório, fora dos arquivos publicados.
 
-Se mudar a lista de agentes, edite a constante `EQUIPE` no topo do `<script>`.
+## Organização
 
-## Como os dados entram
-
-- **Coordenador** (sessão principal do Claude Code) escreve via ferramenta `ArtifactData`, seguindo
-  [`docs/PROTOCOLO-COORDENADOR.md`](docs/PROTOCOLO-COORDENADOR.md).
-- **Dono** escreve pedidos pela própria página (formulário ou arrastando cartões do backlog).
-- Estrutura de cada coleção: [`docs/MODELO-DE-DADOS.md`](docs/MODELO-DE-DADOS.md).
-
-## Carga de exemplo
-
-`dados/snapshot-2026-09-23/` tem os dados reais do dia 1 (um JSON por documento, por coleção).
-Servem para recriar a página em outro Artifact: publique o HTML num Artifact novo com
-`capabilities: {db: {rules: [{path: "", read: "view", write: "admin"}]}}` e grave os JSON com
-`ArtifactData` (`batch`).
-
-## Estado
-
-- v0 funcional, manual (o coordenador registra). Próximo passo: telemetria automática por hooks
-  (ver `IDEIA.md` → Roadmap).
+`src/`: API; `public/`: painel; `connector/`: coletor local; `migrations/`: D1;
+`scripts/`: desenvolvimento e deploy; `tests/`: verificações; `tickets/`: andamento do produto.
+`artefato/` e `dados/` preservam a origem. `docs/IMPORTACAO-V0.md` registra a importação inicial.
