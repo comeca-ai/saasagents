@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import worker, { makeSession } from '../src/worker.js';
 function setup(ai = {run: async () => ({response:'Plano baseado no contexto recebido.',usage:{prompt_tokens:42,completion_tokens:12}})}) {
-  const db = new DatabaseSync(':memory:'); db.exec(readFileSync(new URL('../migrations/0001_initial.sql',import.meta.url),'utf8'));
+  const db = new DatabaseSync(':memory:'); for(const file of readdirSync(new URL('../migrations/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())db.exec(readFileSync(new URL('../migrations/'+file,import.meta.url),'utf8'));
   const adapter = sql => {let params=[];return {bind(...args){params=args;return this;},async first(){return db.prepare(sql).get(...params)||null;},async all(){return {results:db.prepare(sql).all(...params)};},async run(){return db.prepare(sql).run(...params);}};};
   const env={DB:{prepare:adapter},ADMIN_KEY:'test-only-private-key-0123456789',AI:ai};
   const request = async (path,method='GET',data,authenticated=true,extra={}) => {
@@ -26,3 +26,5 @@ test('token de conector só envia snapshot: não lê painel, não executa tarefa
 test('IA recebe o snapshot só do projeto da tarefa',async()=>{let content='';const s=setup({run:async(model,input)=>{content=JSON.stringify(input);return{response:'Ok'};}});const {p,a}=await fixture(s);const c=await(await s.request('/connectors','POST',{project_id:p.id,name:'Pasta'})).json();await s.request('/ingest','POST',{project:'saasagents',overview:'CONTEXTO_LOCAL'},false,{Authorization:'Bearer '+c.token});const other=await(await s.request('/projects','POST',{name:'Outro'})).json();const c2=await(await s.request('/connectors','POST',{project_id:other.id,name:'Outro'})).json();await s.request('/ingest','POST',{project:'other',overview:'NAO_PODE_APARECER'},false,{Authorization:'Bearer '+c2.token});const t=await task(s,p,a);await s.request('/tasks/'+t.id+'/run','POST',{});assert.match(content,/CONTEXTO_LOCAL/);assert.ok(!content.includes('NAO_PODE_APARECER'));});
 test('um agente não executa tarefas simultâneas',async()=>{let release;const s=setup({run:()=>new Promise(resolve=>{release=()=>resolve({response:'Ok'});})});const {p,a}=await fixture(s);const t1=await task(s,p,a),t2=await task(s,p,a);const first=s.request('/tasks/'+t1.id+'/run','POST',{});while(!release)await new Promise(r=>setTimeout(r,1));const second=await s.request('/tasks/'+t2.id+'/run','POST',{});assert.equal(second.status,409);release();await first;});
 test('tarefas presas são marcadas como interrompidas',async()=>{const s=setup();const {p,a}=await fixture(s);const t=await task(s,p,a);s.db.prepare("UPDATE tasks SET status='running', started_at='2020-01-01T00:00:00.000Z' WHERE id=?").run(t.id);const state=await(await s.request('/state')).json();assert.equal(state.tasks[0].status,'failed');});
+
+test('objetivo do dono é editável e persiste no estado',async()=>{const s=setup();const {p}=await fixture(s);const edit=await s.request('/projects/'+p.id,'PATCH',{name:'Produto',description:'Resumo',objective:'Objetivo definido pelo dono'});assert.equal(edit.status,200);const state=await(await s.request('/state')).json();assert.equal(state.projects[0].objective,'Objetivo definido pelo dono');});

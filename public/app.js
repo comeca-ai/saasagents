@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-let state = { projects: [], agents: [], tasks: [], connectors: [] }, projectId = '', loggedIn = false, pendingRun = null, refreshBusy = false;
+let state = { projects: [], agents: [], tasks: [], connectors: [] }, projectId = '', loggedIn = false, pendingRun = null, refreshBusy = false, editingProject = null;
 const labels = { queued: 'na fila', running: 'trabalhando', done: 'entregou', failed: 'precisa de atenção' };
 function element(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function notice(message, error = false) { $('notice').hidden = !message; $('notice').textContent = message; $('notice').classList.toggle('error', error); }
@@ -22,7 +22,13 @@ async function refresh() {
   finally { refreshBusy = false; }
 }
 function render() {
-  if (!state.projects.some(p => p.id === projectId)) projectId = state.projects[0]?.id || '';
+  if (!state.projects.some(p => p.id === projectId)) projectId = state.projects.find(p => p.name === 'SaaS Agents')?.id || state.projects[0]?.id || '';
+  try { localStorage.setItem('saasagents-project',projectId); } catch {}
+  const project=state.projects.find(p=>p.id===projectId);
+  $('project-overview').hidden=!project;
+  $('overview-title').textContent=project?.name || '';
+  $('overview-description').textContent=project?.description || 'Descreva o que este projeto faz e para quem ele existe.';
+  $('overview-objective').textContent=project?.objective || 'Defina o resultado que você quer alcançar com este projeto.';
   const select = $('project-select'); select.replaceChildren();
   if (!state.projects.length) select.append(new Option('Crie seu primeiro projeto', ''));
   for (const p of state.projects) select.append(new Option(p.name, p.id)); select.value = projectId;
@@ -82,10 +88,11 @@ $('confirm-run').onclick=()=>{const id=pendingRun;pendingRun=null;$('run-dialog'
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').close();
 $('connector-dialog').addEventListener('close',()=>{$('connector-token').value='';$('connector-instructions').hidden=true;$('connector-form').hidden=false;});
 $('project-select').onchange=()=>{projectId=$('project-select').value;render();};
-$('new-project').onclick=()=>$('project-dialog').showModal();$('new-agent').onclick=()=>$('agent-dialog').showModal();$('connect-server').onclick=()=>$('connector-dialog').showModal();
+$('new-project').onclick=()=>{editingProject=null;$('project-form').reset();$('project-dialog-title').textContent='Novo projeto';$('project-form').querySelector('[type=submit]').textContent='Criar projeto';$('project-dialog').showModal();};
+$('edit-project').onclick=()=>{const p=state.projects.find(p=>p.id===projectId);if(!p)return;editingProject=p.id;for(const field of ['name','description','objective'])$('project-form').elements[field].value=p[field]||'';$('project-dialog-title').textContent='Resumo e objetivo';$('project-form').querySelector('[type=submit]').textContent='Salvar projeto';$('project-dialog').showModal();};$('new-agent').onclick=()=>$('agent-dialog').showModal();$('connect-server').onclick=()=>$('connector-dialog').showModal();
 function form(id,handler){$(id).addEventListener('submit',async event=>{event.preventDefault();const submit=event.submitter;submit.disabled=true;try{await handler(Object.fromEntries(new FormData(event.target)));notice('');}catch(e){notice(e.message,true);}finally{submit.disabled=false;}});}
 form('login-form',async data=>{await api('/login','POST',data);$('login-form').reset();await refresh();});
-form('project-form',async data=>{const created=await api('/projects','POST',data);projectId=created.id;$('project-dialog').close();$('project-form').reset();await refresh();});
+form('project-form',async data=>{const created=await api(editingProject?'/projects/'+editingProject:'/projects',editingProject?'PATCH':'POST',data);projectId=created.id;$('project-dialog').close();$('project-form').reset();await refresh();});
 form('agent-form',async data=>{await api('/agents','POST',{...data,project_id:projectId});$('agent-dialog').close();await refresh();});
 form('task-form',async data=>{await api('/tasks','POST',{...data,project_id:projectId});$('task-form').reset();await refresh();});
 form('connector-form',async data=>{const c=await api('/connectors','POST',{...data,project_id:projectId});$('connector-form').hidden=true;$('connector-instructions').hidden=false;$('connector-token').value=c.token;$('install-command').textContent='node connector/cli.mjs connect --url '+location.origin;await refresh();});
@@ -93,5 +100,6 @@ $('executive-summary').onclick=async()=>{try{const agent=active(state.agents).fi
 $('logout').onclick=async()=>{try{await api('/logout','POST',{});loginView();}catch(e){notice(e.message,true);}};
 $('theme').onclick=()=>{const current=document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=current==='dark'?'light':'dark';try{localStorage.setItem('saasagents-theme',document.documentElement.dataset.theme);}catch{}};
 try{const theme=localStorage.getItem('saasagents-theme');if(['light','dark'].includes(theme))document.documentElement.dataset.theme=theme;}catch{}
+try{projectId=localStorage.getItem('saasagents-project')||'';}catch{}
 api('/session').then(()=>refresh()).catch(e=>{loginView();if(e.message!=='Entre para acessar sua mesa.')notice(e.message,true);});
 setInterval(()=>{if(loggedIn)refresh().catch(e=>notice('Conexão interrompida. '+e.message,true));},5000);
