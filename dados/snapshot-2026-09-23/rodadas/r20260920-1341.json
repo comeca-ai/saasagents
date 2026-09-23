@@ -1,0 +1,12 @@
+{
+  "agente": "genérico com papel de testador-interface",
+  "data": "2026-09-20T13:41",
+  "estado": "raso",
+  "minutos": 27,
+  "modelo": "haiku",
+  "passos": 19,
+  "pedido": "Teste de tela da homologação",
+  "relatorio": "packages/estrategia/auditorias/TESTE-INTERFACE-homolog-2026-09-20.md",
+  "resultado": "Smoke 32/32 e 8 fotos, mas não investigou tablet, teclado nem erros de JS; a sessão principal fez essas verificações.",
+  "tokens": 66893
+}

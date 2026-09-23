@@ -1,0 +1,14 @@
+# Credenciais e configuração local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.ssh/
+
+# Dependências e saídas locais
+node_modules/
+dist/
+.wrangler/
+*.log
+.DS_Store

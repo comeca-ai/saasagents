@@ -1,0 +1,9 @@
+{
+  "detalhe": "Tipo {algo} ou nome.da.chave; confirmar os 3 defeitos do especialista corrigidos",
+  "grupo": "testes",
+  "ordem": 2,
+  "rank": 4,
+  "status": "aberto",
+  "sugerido": "testador-interface",
+  "titulo": "Caçar textos com chaves cruas em todas as telas"
+}

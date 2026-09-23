@@ -1,0 +1,11 @@
+{
+  "agente": "genérico (general-purpose)",
+  "data": "2026-09-19T12:29",
+  "estado": "ok",
+  "minutos": 4,
+  "modelo": "sonnet",
+  "passos": 2,
+  "pedido": "Extrair os pedidos da WorkSession de 19/ago",
+  "resultado": "Lista de pedidos extraída para a ata.",
+  "tokens": 105181
+}

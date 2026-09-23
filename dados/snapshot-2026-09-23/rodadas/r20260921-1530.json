@@ -1,0 +1,12 @@
+{
+  "agente": "revisor-codigo",
+  "data": "2026-09-21T15:30",
+  "estado": "rodando",
+  "minutos": null,
+  "modelo": "sonnet",
+  "passos": null,
+  "pedido": "Revisão final da v0.5.0 (tudo o que entrou na homologação em 21/set)",
+  "relatorio": "packages/estrategia/auditorias/REVISAO-FINAL-v0.5.0-2026-09-21.md",
+  "resultado": "Em andamento.",
+  "tokens": null
+}

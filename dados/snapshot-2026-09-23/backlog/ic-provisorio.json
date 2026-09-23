@@ -1,0 +1,9 @@
+{
+  "detalhe": "Conferir se o 0 do Conteúdo entra no índice 26; mostrar \"em calibração\"",
+  "grupo": "urgente",
+  "ordem": 1,
+  "rank": 1,
+  "status": "aberto",
+  "sugerido": "guardiao-metricas",
+  "titulo": "IC: dimensão provisória aparece como \"0\" vermelho"
+}

@@ -1,0 +1,7 @@
+{
+  "bloqueia": "começar a cobrar: Stripe, planos na tela e nota fiscal",
+  "de": "dono",
+  "esperaDesde": "2026-09-23T07:50:00Z",
+  "esperando": "decidir Stripe (a) modo nuvem ou (b) só converter o trial, e abrir a conta Stripe Brasil",
+  "proxima": "revisar a cobrança Stripe (webhook assinado, chaves só no .env)"
+}

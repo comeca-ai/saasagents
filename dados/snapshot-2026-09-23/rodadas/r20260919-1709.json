@@ -1,0 +1,11 @@
+{
+  "agente": "genérico com papel de arquiteto-ia",
+  "data": "2026-09-19T17:09",
+  "estado": "ok",
+  "minutos": 22,
+  "modelo": "sonnet",
+  "passos": 79,
+  "pedido": "Parecer: qual IA em cada processo e como rastrear o Claude",
+  "resultado": "Parecer entregue; levou ao modelo de sentimento mais barato.",
+  "tokens": 181206
+}

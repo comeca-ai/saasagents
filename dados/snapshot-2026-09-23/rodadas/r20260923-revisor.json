@@ -1,0 +1,14 @@
+{
+  "agente": "revisor-codigo",
+  "data": "2026-09-23T04:30:00Z",
+  "estado": "achado",
+  "minutos": 5.5,
+  "modelo": "opus-5.5 (herda)",
+  "p0": 0,
+  "p1": 2,
+  "passos": 32,
+  "pedido": "Revisão pré-release: homologação (feat/painel-visual) × produção",
+  "relatorio": "conversa 23/set",
+  "resultado": "NÃO PODE SUBIR: P1 brandTerms derruba prompts de mercado; 00054 não aplicada na produção. Gates: api 372/372, web 117/117, typecheck ok",
+  "tokens": 84987
+}

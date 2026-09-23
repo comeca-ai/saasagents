@@ -1,0 +1,12 @@
+{
+  "agente": "guardiao-metricas",
+  "data": "2026-09-20T10:29",
+  "estado": "achado",
+  "minutos": 6,
+  "modelo": null,
+  "p1": 1,
+  "passos": 34,
+  "pedido": "A aba Citações está alinhada com Score e Citabilidade?",
+  "resultado": "Achou duas definições de 'citação' no ar com o mesmo nome. Você decidiu: vale a do Igor (link próprio).",
+  "tokens": 94660
+}

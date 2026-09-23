@@ -1,0 +1,13 @@
+{
+  "agente": "genérico com papel de guardiao-metricas",
+  "data": "2026-09-20T13:28",
+  "estado": "achado",
+  "minutos": 15,
+  "modelo": null,
+  "p1": 2,
+  "passos": 29,
+  "pedido": "Conferir os números da homologação (SQL = tela)",
+  "relatorio": "packages/estrategia/auditorias/GUARDIAO-METRICAS-homolog-2026-09-20.md",
+  "resultado": "Achou a soma das parcelas que não fechava com a nota e a conta do IC com dimensão faltando; corrigido com 16 testes.",
+  "tokens": 183080
+}

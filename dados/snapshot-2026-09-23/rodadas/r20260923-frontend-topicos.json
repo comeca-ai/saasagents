@@ -1,0 +1,14 @@
+{
+  "agente": "frontend-designer",
+  "data": "2026-09-23T06:40:00Z",
+  "estado": "raso",
+  "minutos": 13.5,
+  "modelo": "sonnet",
+  "p0": 0,
+  "p1": 0,
+  "passos": 68,
+  "pedido": "Redesenhar a tela Tópicos, Prompts & Conteúdo",
+  "relatorio": "conversa 23/set",
+  "resultado": "Entrega pequena (3bf9a65): sparkline no cartão + mini-barra de impacto; sem foto 'depois' (dev local em loop de redirect); estado vazio e hierarquia não tocados",
+  "tokens": 103123
+}

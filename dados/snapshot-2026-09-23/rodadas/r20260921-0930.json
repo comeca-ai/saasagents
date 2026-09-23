@@ -1,0 +1,13 @@
+{
+  "agente": "seguranca",
+  "data": "2026-09-21T09:30",
+  "estado": "achado",
+  "minutos": 4,
+  "modelo": "haiku",
+  "p1": 1,
+  "passos": 45,
+  "pedido": "Segurança dos 45 commits de 19/set",
+  "relatorio": "packages/estrategia/auditorias/SEGURANCA-19set-2026-09-21.md",
+  "resultado": "Nenhum segredo versionado; RLS e autenticação ok. Falta confirmar de fora que o firewall bloqueia as portas publicadas em 0.0.0.0.",
+  "tokens": 60075
+}

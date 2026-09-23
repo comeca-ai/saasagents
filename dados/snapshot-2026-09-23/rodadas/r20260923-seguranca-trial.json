@@ -1,0 +1,14 @@
+{
+  "agente": "seguranca",
+  "data": "2026-09-23T05:25:00Z",
+  "estado": "raso",
+  "minutos": 9,
+  "modelo": "haiku",
+  "p0": 1,
+  "p1": 0,
+  "passos": 65,
+  "pedido": "Segurança do teste grátis (48953fe)",
+  "relatorio": "conversa 23/set",
+  "resultado": "Trial sem P0/P1. Marcou como 'informativo' a policy profiles: own row update — a prova mostrou falha REAL (virar admin + pular de empresa), também na produção; corrigida na 00056 (708ed26)",
+  "tokens": 80083
+}

@@ -1,0 +1,14 @@
+{
+  "agente": "revisor-codigo",
+  "data": "2026-09-21T09:31",
+  "estado": "achado",
+  "minutos": 10,
+  "modelo": "sonnet",
+  "p0": 0,
+  "p1": 2,
+  "passos": 62,
+  "pedido": "Revisão de código dos 45 commits de 19/set",
+  "relatorio": "packages/estrategia/auditorias/REVISAO-CODIGO-19set-2026-09-21.md",
+  "resultado": "Nenhum P0; api 337/337 e web sem erro. 2 P1 (.env.example apontava para um provedor sem chave; o compose da homologação dizia que o Cloro não gasta), corrigidos no mesmo dia em 94049f7. 3 P2 anotados.",
+  "tokens": 148939
+}

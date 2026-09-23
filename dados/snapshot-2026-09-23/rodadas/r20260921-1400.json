@@ -1,0 +1,13 @@
+{
+  "agente": "guardiao-metricas",
+  "data": "2026-09-21T14:00",
+  "estado": "achado",
+  "minutos": 43,
+  "modelo": "sonnet",
+  "p1": 1,
+  "passos": 43,
+  "pedido": "Informação duplicada entre as telas (homologação, antes de subir a v0.5.0)",
+  "relatorio": "packages/estrategia/auditorias/DUPLICACOES-TELAS-2026-09-21.md",
+  "resultado": "\"Presença\" com dois números sob o mesmo nome: 43 no Score (respostas) × 74,2% no Insights e no Pulse (prompts). Duas repetições na aba Citações (cartão Citação × gráfico novo; tipo de fonte em dois lugares). Prompts, Tópicos e parte da Citabilidade ficaram sem verificar.",
+  "tokens": 83532
+}

@@ -1,0 +1,11 @@
+{
+  "de": "dono",
+  "detalhe": "Decidir (a) modo nuvem ou (b) só converter o trial; nota fiscal",
+  "espera": "decidir (a) ou (b) e abrir a conta",
+  "grupo": "cobranca",
+  "ordem": 3,
+  "rank": 9,
+  "status": "aberto",
+  "sugerido": "seguranca",
+  "titulo": "Stripe para cobrar"
+}

@@ -1,0 +1,14 @@
+{
+  "agente": "guardiao-metricas",
+  "data": "2026-09-23T04:30:00Z",
+  "estado": "ok",
+  "minutos": 5.5,
+  "modelo": "opus-5.5 (herda)",
+  "p0": 0,
+  "p1": 0,
+  "passos": 35,
+  "pedido": "Números SQL=RPC=tela=e-mail antes do release",
+  "relatorio": "conversa 23/set",
+  "resultado": "Batem (Score/Presença/Citação/Ranking/Sentimento/IC). Muda de propósito: KPI Citations do Pulse e citações no Insights (decisão 20/set). P2: insights-funnel refaz cites_own em JS",
+  "tokens": 85579
+}
