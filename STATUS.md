@@ -2,6 +2,14 @@
 
 Atualizado em 23/09/2026. Fonte do estado atual deste projeto.
 
+## Instalador de cliente — implementado, sem deploy real de cliente nesta sessão
+- Branch `feat/cli-installer`: CLI empacotável, wizard de GitHub/Cloudflare e workflow manual `install-client.yml`.
+- A conta do cliente recebe repositório privado, Worker, D1, código de acesso e tokens independentes.
+- CLI `install` envia um snapshot e termina. Serviço contínuo não foi instalado.
+- Testes automatizados usam APIs simuladas e HTTP local; não são prova de deploy no GitHub/Cloudflare do cliente.
+- Assinatura, cobrança e gestão central de licenças permanecem pendentes.
+- Detalhes e recuperação de instalação parcial: `docs/INSTALACAO-CLIENTE.md`.
+
 ## Implementado e verificado
 - Painel publicado em https://saasagents-v0.jhonata-emerick.workers.dev.
 - Worker e banco D1 exclusivos, ambos chamados saasagents-v0.
@@ -27,7 +35,7 @@ Atualizado em 23/09/2026. Fonte do estado atual deste projeto.
 - Apenas este projeto está conectado. Nenhum outro servidor ou repositório foi acessado pelo conector.
 
 ## Planejado, ainda não iniciado
-- Empacotar o conector para instalação em outros projetos, com seleção de arquivos.
+- Validar a instalação real em conta de cliente e adicionar seleção personalizada de arquivos (pacote implementado, leitura ainda fixa).
 - Login individual e isolamento entre clientes antes de abrir o produto.
 - Execução local de tarefas com autorização separada para escrita e comandos.
 

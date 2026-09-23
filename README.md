@@ -1,7 +1,24 @@
 # SaaS Agents — Mesa dos Agentes
 
 Painel privado para entender projetos, acompanhar agentes e transformar contexto em decisões.
-Repositório exclusivo: https://github.com/comeca-ai/saasagents. Pasta desta instalação: `/root/saasagents`.
+Repositório exclusivo: https://github.com/comeca-ai/saasagents. Diretório de desenvolvimento desta sessão: `/root/agentesaas`.
+
+## Instalar na conta de um cliente (GitHub Actions)
+
+O assistente escolhe o novo repositório privado e a conta Cloudflare, confirma as integrações,
+salva os secrets no environment `client` e dispara os Actions do cliente. Cada instalação tem
+Worker, D1, painel e tokens próprios. Requer Node.js 22+, Git e GitHub CLI autenticado.
+
+```sh
+node connector/cli.mjs init
+```
+
+Para distribuir o comando `saasagents`, gere `npm run connector:pack`. O pacote em `dist/`
+inclui o template do produto e pode ser instalado com `npm install --global ./saasagents-connector-0.1.0.tgz`.
+Depois execute `saasagents init`. Não há pacote público no npm nem cobrança/licenciamento implementados.
+
+Guia completo, configuração manual dos Actions e teste único no outro servidor:
+[Instalação do cliente](docs/INSTALACAO-CLIENTE.md).
 
 ## v0
 
@@ -56,7 +73,7 @@ além de nomes de itens na raiz e metadados de Git. Não segue links para arquiv
 não lê `.env`, credenciais, mapas de acesso ou outros projetos. Padrões conhecidos de credenciais
 são omitidos, mas os documentos autorizados devem conter apenas contexto apropriado para envio.
 
-A configuração fica em `.secrets/connector.json` (permissão 600); mantenha `.secrets/` fora do Git.
+A configuração fica em `.secrets/connector.json` (permissão 600); o CLI protege a pasta com `.secrets/.gitignore`.
 Para manter o painel atualizado enquanto o processo estiver ativo:
 
 ```sh
@@ -65,8 +82,9 @@ node connector/cli.mjs sync --watch
 
 Sem novos sinais por três minutos, o painel mostra o conector como offline. O botão **Revogar
 acesso** invalida o token. O servidor guarda somente seu hash. `inspect` permite visualizar
-localmente o contexto coletado antes de enviar. A v0 usa o script do repositório; um pacote
-instalável independente ainda está no backlog.
+localmente o contexto coletado antes de enviar. O conector também é distribuído como pacote
+instalável; `saasagents install --url https://SEU-WORKER.workers.dev --directory /sua/pasta`
+faz um teste único guiado. O processo não fica em segundo plano.
 
 ## Cloudflare / GitHub
 
