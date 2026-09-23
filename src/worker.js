@@ -197,11 +197,13 @@ async function api(request, env) {
         .bind(answer.slice(0, 50000), tokens(usage.prompt_tokens), tokens(usage.completion_tokens), new Date().toISOString(), task.id).run();
     } catch (error) {
       const message = String(error?.message || '');
-      const code = message.match(/(?:AI_ERROR|code|error)[^0-9]{0,12}([0-9]{3,6})/i)?.[1];
+      const code = message.match(/^(?:Error: )?([0-9]{3,6})[: ]/)?.[1] || message.match(/(?:AI_ERROR|code|error)[^0-9]{0,12}([0-9]{3,6})/i)?.[1];
+      const errorName = /^[A-Za-z]{1,40}$/.test(error?.name || '') ? error.name : 'Error';
+      const providerDetail = ['InferenceUpstreamError', 'AiError', 'AiInternalError'].includes(errorName) ? message.replaceAll(env.ADMIN_KEY, '[omitido]').replace(/Bearer\s+\S+/gi, '[omitido]').replace(/\b[A-Za-z0-9_-]{32,}\b/g, '[omitido]').slice(0, 400) : ''; 
       const reason = /(?:context|input|prompt).*(?:long|length|limit|token)/i.test(message) ? 'O contexto ultrapassou o limite do modelo.' : /quota|rate limit|limit exceeded/i.test(message) ? 'A cota do Workers AI foi atingida.' : /Resposta vazia/.test(message) ? 'O modelo devolveu uma resposta vazia ou em formato não reconhecido.' : 'O modelo não concluiu a resposta. Verifique a disponibilidade e a cota do Workers AI na conta.';
-      console.error('saasagents_ai_failure', JSON.stringify({ code: code || 'unknown', reason }));
+      console.error('saasagents_ai_failure', JSON.stringify({ name: errorName, code: code || 'unknown', reason }));
       await env.DB.prepare("UPDATE tasks SET status='failed', error=?, finished_at=? WHERE id=? AND status='running'")
-        .bind(reason + (code ? ' Código do provedor: ' + code + '.' : ''), new Date().toISOString(), task.id).run();
+        .bind(reason + (code ? ' Código do provedor: ' + code + '.' : '') + (providerDetail ? ' Diagnóstico: ' + providerDetail : ' Tipo: ' + errorName + '.'), new Date().toISOString(), task.id).run();
     }
     return json(await env.DB.prepare('SELECT * FROM tasks WHERE id=?').bind(task.id).first());
   }
