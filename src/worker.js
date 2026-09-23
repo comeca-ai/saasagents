@@ -1,7 +1,7 @@
 const encoder = new TextEncoder();
 const COOKIE = 'saasagents_session';
 const SESSION_SECONDS = 43200;
-export const MODEL = '@cf/meta/llama-3.1-8b-instruct';
+export const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const MAX_BODY = 24000;
 
 function json(value, status = 200, extra = {}) {

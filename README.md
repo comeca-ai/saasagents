@@ -72,7 +72,7 @@ O workflow `.github/workflows/deploy.yml` publica a branch `main` pelo environme
 - `SAASAGENTS_ADMIN_KEY`: código privado do dono, salvo como secret `ADMIN_KEY` no Worker.
 
 Recursos exclusivos: Worker `saasagents-v0` e banco D1 `saasagents-v0`. A configuração inclui
-binding Workers AI. O modelo padrão é `@cf/meta/llama-3.1-8b-instruct`. Cada execução é explícita
+binding Workers AI. O modelo padrão é `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. Cada execução é explícita
 e consome a cota Workers AI da conta; custo monetário não é estimado pelo painel. Tokens aparecem
 somente quando informados pelo provedor. Não há migração de dados dos projetos anteriores.
 

@@ -1,7 +1,10 @@
 // Diagnóstico restrito a uma chamada curta do modelo deste projeto.
 const token=process.env.CLOUDFLARE_API_TOKEN?.trim(),account=process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
 if(!token||!account)throw new Error('Credenciais ausentes.');
-const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/meta/llama-3.1-8b-instruct`,{
+const catalogResponse=await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/models/search?search=llama-3.3-70b-instruct-fp8-fast`,{headers:{Authorization:`Bearer ${token}`}});
+const catalog=await catalogResponse.json();
+console.log('Modelo no catálogo:',(catalog.result||[]).filter(m=>m.name==='@cf/meta/llama-3.3-70b-instruct-fp8-fast').map(m=>m.name));
+const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast`,{
  method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
  body:JSON.stringify({messages:[{role:'user',content:'Responda apenas: conexão funcionando.'}],max_tokens:30})
 });
