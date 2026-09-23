@@ -1,6 +1,6 @@
 # SAAS-001 — v0 independente na Cloudflare
 
-Estado: in_dev. Porte: M (hipótese). Execução nesta sessão, até duas rodadas de revisão.
+Estado: done. Porte: M (hipótese). Execução nesta sessão, até duas rodadas de revisão.
 
 Autorização: usuário solicitou construir, testar e publicar a v0 na Cloudflare, usando
 comeca-ai/saasagents e o environment GitHub agents. Escopo local exclusivo: /root/saasagents.
@@ -22,10 +22,21 @@ queued/running/done/failed, resultado e consumo quando disponível. Execução e
 explícita do dono. Dados históricos importados não participam do app.
 
 ## Validação local
-- 12 testes de API/conector passaram: autenticação, origem, vínculos, execução única,
+- 14 testes de API/conector passaram: autenticação, origem, vínculos, execução única,
   falha de IA, tokens restritos, revogação e prevenção de leitura fora da pasta.
 - Navegador Chromium: login, criar projeto e agente, criar tarefa, persistência após recarga,
   logout e telas de 1440 px / 390 px sem overflow ou erros JavaScript.
 - Revisão local: somente public/ é publicado; secrets ignorados no Git; SQL parametrizado;
   cookies HttpOnly/SameSite; token do conector armazenado como hash e sem poder de leitura.
-- IA real e provisionamento da conta serão verificados após o deploy.
+- IA real e provisionamento da conta verificados após o deploy.
+
+## Fechamento
+- v0 publicada em https://saasagents-v0.jhonata-emerick.workers.dev, com Worker/D1 saasagents-v0.
+- Projeto, coordenador e conector reais criados. A análise foi concluída pelo Workers AI.
+- Card de resumo e objetivo acrescentado por solicitação do dono durante a implementação.
+- Ajustes necessários: permissão/token D1 e substituição do modelo descontinuado pelo Llama 3.3.
+- Todos os commits e deploys foram feitos apenas por comeca-ai/saasagents, environment agents.
+- Verificação publicada: API privada retorna 401 sem login; saúde retorna 200; navegador
+  confirma login/logout, objetivo, análise, conector online e layout de computador/celular.
+- Análise textual é um piloto; não há execução de comandos ou escrita pelo agente no servidor.
+- Próximas evoluções estão no BACKLOG. O estado canônico da implantação está no STATUS.md.

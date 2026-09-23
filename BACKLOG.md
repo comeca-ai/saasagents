@@ -1,17 +1,16 @@
 # Backlog — SaaS Agents
 
-## Em validação nesta v0
-- Publicar painel privado na Cloudflare e validar o primeiro agente com contexto real desta pasta.
-- Conector local com token por projeto, leitura consentida, resumo executivo e status de conexão.
+## Entregue na v0
+- Painel privado publicado na Cloudflare, usando apenas o repositório comeca-ai/saasagents.
+- Card de resumo e objetivo editável, projetos, agentes, pedidos e histórico persistente.
+- Conector desta pasta com leitura consentida, token por projeto e status de conexão.
+- Resumo executivo sob demanda, validado com análise real pelo Workers AI.
 
-## Próximos passos
-1. Pacote instalável do conector, com permissões por arquivo e revisão do conteúdo antes do envio.
-2. Atualização do resumo sob demanda e evidências mais precisas para pendências/bloqueios.
-3. Integração com executores de agentes locais, com aprovação separada para qualquer escrita ou comando.
+## Próximas evoluções — planejadas, não iniciadas
+1. Pacote instalável do conector, com seleção de arquivos e revisão do conteúdo antes do envio.
+2. Evidências mais precisas e indicação de mudanças desde a última análise.
+3. Integração com executores locais, com autorização separada para escrita e comandos.
 4. Login individual, organizações e isolamento entre clientes antes de abrir para terceiros.
-5. Orçamento por execução, cancelamento e telemetria de custos.
+5. Orçamento por execução, cancelamento e telemetria de custos monetários.
 
-## Limites atuais
-- Um único dono; não é um SaaS aberto a novos clientes.
-- Agentes geram texto. Não alteram o projeto nem iniciam subprocessos.
-- Conector envia snapshot a cada minuto enquanto o processo estiver ativo.
+O estado verificado está em STATUS.md. Esta lista de evolução não indica trabalho em andamento.

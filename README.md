@@ -5,6 +5,11 @@ Repositório exclusivo: https://github.com/comeca-ai/saasagents. Pasta desta ins
 
 ## v0
 
+Publicado: https://saasagents-v0.jhonata-emerick.workers.dev
+
+Primeiro projeto conectado: esta própria pasta (`/root/saasagents`). O coordenador já executou
+uma análise real pelo Workers AI. Consulte `STATUS.md` para o estado verificado da instalação.
+
 - Painel baseado no template original da Mesa dos Agentes, com tema claro/escuro e layout responsivo.
 - Projetos, agentes, backlog e histórico persistidos em Cloudflare D1.
 - Agente textual no Workers AI: analisa o pedido e o último snapshot do projeto.
