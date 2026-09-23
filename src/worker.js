@@ -189,14 +189,19 @@ async function api(request, env) {
           { role: 'user', content: task.title + '\n\n' + task.prompt + context },
         ], max_tokens: 1500,
       });
-      if (typeof output?.response !== 'string' || !output.response.trim()) throw new Error('Resposta vazia');
+      const answer = typeof output?.response === 'string' && output.response.trim() ? output.response : output?.choices?.[0]?.message?.content;
+      if (typeof answer !== 'string' || !answer.trim()) throw new Error('Resposta vazia');
       const usage = output.usage || {};
       const tokens = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
       await env.DB.prepare("UPDATE tasks SET status='done', result=?, input_tokens=?, output_tokens=?, finished_at=? WHERE id=? AND status='running'")
-        .bind(output.response.slice(0, 50000), tokens(usage.prompt_tokens), tokens(usage.completion_tokens), new Date().toISOString(), task.id).run();
-    } catch {
+        .bind(answer.slice(0, 50000), tokens(usage.prompt_tokens), tokens(usage.completion_tokens), new Date().toISOString(), task.id).run();
+    } catch (error) {
+      const message = String(error?.message || '');
+      const code = message.match(/(?:AI_ERROR|code|error)[^0-9]{0,12}([0-9]{3,6})/i)?.[1];
+      const reason = /(?:context|input|prompt).*(?:long|length|limit|token)/i.test(message) ? 'O contexto ultrapassou o limite do modelo.' : /quota|rate limit|limit exceeded/i.test(message) ? 'A cota do Workers AI foi atingida.' : /Resposta vazia/.test(message) ? 'O modelo devolveu uma resposta vazia ou em formato não reconhecido.' : 'O modelo não concluiu a resposta. Verifique a disponibilidade e a cota do Workers AI na conta.';
+      console.error('saasagents_ai_failure', JSON.stringify({ code: code || 'unknown', reason }));
       await env.DB.prepare("UPDATE tasks SET status='failed', error=?, finished_at=? WHERE id=? AND status='running'")
-        .bind('O modelo não concluiu a resposta. Verifique a disponibilidade e a cota do Workers AI na conta.', new Date().toISOString(), task.id).run();
+        .bind(reason + (code ? ' Código do provedor: ' + code + '.' : ''), new Date().toISOString(), task.id).run();
     }
     return json(await env.DB.prepare('SELECT * FROM tasks WHERE id=?').bind(task.id).first());
   }

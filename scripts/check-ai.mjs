@@ -7,5 +7,5 @@ const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${acco
 });
 const data=await response.json();
 const clean=value=>String(value||'').replaceAll(token,'[omitido]').replaceAll(account,'[conta]').slice(0,500);
-console.log(JSON.stringify({http:response.status,success:data.success,errors:(data.errors||[]).map(e=>({code:e.code,message:clean(e.message)})),result_keys:Object.keys(data.result||{})}));
+console.log(JSON.stringify({http:response.status,success:data.success,errors:(data.errors||[]).map(e=>({code:e.code,message:clean(e.message)})),result_keys:Object.keys(data.result||{}),response_type:typeof data.result?.response,response_length:typeof data.result?.response==='string'?data.result.response.length:null,choice_content_type:typeof data.result?.choices?.[0]?.message?.content}));
 if(!response.ok||data.success===false)process.exitCode=1;

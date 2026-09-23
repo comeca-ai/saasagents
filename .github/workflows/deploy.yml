@@ -7,7 +7,7 @@ on:
       - 'public/**'
       - 'connector/**'
       - 'migrations/**'
-      - 'scripts/**'
+      - 'scripts/provision.mjs'
       - 'tests/**'
       - 'package*.json'
       - 'wrangler.jsonc'
