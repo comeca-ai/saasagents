@@ -20,13 +20,14 @@ O GitHub Models, usado na primeira versão, foi desativado pelo GitHub em 30/07/
 
 ## Instalação no cliente
 
-A página `interface/` guia o cliente em seis etapas: repositório, agentes e modelo, instalação dos três arquivos, chave do modelo, ativação e primeira tarefa. Ela é publicada pelo workflow `interface.yml` no GitHub Pages (Settings → Pages → Source: GitHub Actions). Para gerar localmente: `npm run interface` e abra `interface/dist/index.html`.
+A página `interface/` guia o cliente em cinco passos, um por tela: repositório, os dois arquivos, a chave de IA, o teste de conexão e a primeira tarefa. Ela é publicada pelo workflow `interface.yml` no GitHub Pages (Settings → Pages → Source: GitHub Actions). Para gerar localmente: `npm run interface` e abra `interface/dist/index.html`.
 
 Arquivos que o cliente recebe:
 
 - `.github/workflows/agentes.yml` (sem as linhas marcadas `# interno`, que só servem ao teste desta branch)
 - `.saasagents/run.mjs` (Node.js, sem dependências)
-- `.saasagents/agentes.json`
+
+`.saasagents/agentes.json` é opcional: sem ele, responde um agente "Analista" com o contexto padrão.
 
 Secret obrigatório: `SAASAGENTS_API_KEY` (Settings → Secrets and variables → Actions → New repository secret).
 
@@ -34,7 +35,7 @@ Depois, em Actions → Mesa dos Agentes → Run workflow com `configurar`: cria 
 
 ## Provedor e modelo
 
-Em `.saasagents/agentes.json`:
+Sem configuração, o provedor é reconhecido pela chave: `sk-ant-...` usa a Anthropic (Claude Sonnet 5); outras chaves `sk-...` usam a OpenAI (GPT-6 Luna). Para fixar provedor, modelo ou endereço, use `.saasagents/agentes.json`:
 
 ```json
 { "provedor": "anthropic", "modelo": "claude-sonnet-5", "base_url": "" }

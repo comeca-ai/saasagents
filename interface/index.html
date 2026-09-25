@@ -5,8 +5,7 @@
 <style>
 :root{
   --bg:#f5f6f8;--surface:#ffffff;--ink:#172031;--muted:#5d6779;--line:#dde1e8;--soft:#eef1f5;--accent:#2b59c3;--accent-ink:#ffffff;
-  --ok:#1f8a4c;--ok-bg:#e3f4ea;--warn:#a86400;--warn-bg:#fdf0da;--bad:#b3261e;--bad-bg:#fbe4e2;--info:#2b59c3;--info-bg:#e4ebfb;
-  --code:#f0f2f6;
+  --ok:#1f8a4c;--ok-bg:#e3f4ea;--info-bg:#e4ebfb;
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -14,284 +13,153 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#10141c;--surface:#181e29;--ink:#e6e9ef;--muted:#9aa3b2;--line:#2a3242;--soft:#1f2633;--accent:#7d9ff0;--accent-ink:#0c1220;
-    --ok:#5fd08e;--ok-bg:#16301f;--warn:#f0b35a;--warn-bg:#33270f;--bad:#f28b82;--bad-bg:#3a1a18;--info:#8fb0ff;--info-bg:#1a2645;--code:#131924;
+    --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#10141c;--surface:#181e29;--ink:#e6e9ef;--muted:#9aa3b2;--line:#2a3242;--soft:#1f2633;--accent:#7d9ff0;--accent-ink:#0c1220;
-  --ok:#5fd08e;--ok-bg:#16301f;--warn:#f0b35a;--warn-bg:#33270f;--bad:#f28b82;--bad-bg:#3a1a18;--info:#8fb0ff;--info-bg:#1a2645;--code:#131924;
+  --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;margin:0;padding-inline:16px;padding-block:28px 64px}
-.wrap{max-width:1040px;margin:0 auto;display:grid;gap:28px}
-h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
-h1{font-size:30px;font-weight:700;letter-spacing:-.01em}
-h2{font-size:19px;font-weight:600}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;margin:0;padding-inline:16px;padding-block:32px 64px}
+.wrap{max-width:600px;margin:0 auto;display:grid;gap:20px}
+h1,h2{margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:24px;font-weight:700}
+h2{font-size:22px;font-weight:600}
 p{margin:0}
-code,.mono{font-family:var(--mono);font-size:.9em}
+code,.mono{font-family:var(--mono);font-size:.92em}
 a{color:var(--accent)}
-.muted{color:var(--muted)}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 
-header.top{display:grid;gap:14px}
-header.top .lede{max-width:64ch;color:var(--muted);font-size:16px}
-.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin-top:6px}
-.flow .node{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:2px;min-width:0;flex:1 1 180px}
-.flow .node b{font-size:14px}
-.flow .node span{font-size:12.5px;color:var(--muted)}
-.flow .arrow{align-self:center;color:var(--muted);font-family:var(--mono)}
-@media (max-width:720px){.flow .arrow{display:none}}
+header{display:grid;gap:6px}
+.lede{color:var(--muted)}
 
-.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:start}
-@media (max-width:820px){.layout{grid-template-columns:minmax(0,1fr)}.rail{position:static!important}}
-.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:grid;gap:12px}
-.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.rail a{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:14px}
-.rail a:hover{background:var(--soft)}
-.dot{width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface)}
-.done .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden}
-.meter i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
-@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+.progress{display:flex;gap:6px;align-items:center}
+.progress button{flex:1;height:6px;border:0;border-radius:99px;background:var(--line);padding:0;cursor:pointer}
+.progress button.done{background:var(--ok)}
+.progress button.current{background:var(--accent)}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted)}
 
-.steps{display:grid;gap:18px}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:14px;scroll-margin-top:16px}
-.step-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.step-head .t{display:flex;gap:12px;align-items:center}
-.step-head .n{font-family:var(--mono);font-size:13px;color:var(--muted)}
-.step .why{color:var(--muted);max-width:66ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;display:grid;gap:16px}
+.hint{color:var(--muted);font-size:15px}
 
-.field{display:grid;gap:5px;min-width:0}
-.field label{font-size:13px;font-weight:600}
-.field small{color:var(--muted);font-size:12.5px}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-input[type=text],textarea,select{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
-textarea{resize:vertical;min-height:72px}
-input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-input.mono{font-family:var(--mono)}
+label.lbl{font-size:14px;font-weight:600}
+input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+input.mono{font-family:var(--mono);font-size:15px}
+textarea{resize:vertical;min-height:88px}
+input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{display:grid;gap:6px}
 
-.btn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:15px;font-weight:600;border-radius:8px;padding:12px 18px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none}
 .btn:hover{background:var(--soft)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.08)}
-.btn[aria-disabled=true]{opacity:.45;pointer-events:none}
-.btn.small{padding:5px 10px;font-size:13px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn.block{width:100%}
+.btn[aria-disabled=true],.btn:disabled{opacity:.45;pointer-events:none}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:14px;color:var(--accent);text-decoration:underline;cursor:pointer;justify-self:start}
 
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:4px;padding:2px 7px;white-space:nowrap}
-.chip.ok{background:var(--ok-bg);color:var(--ok)}
-.chip.warn{background:var(--warn-bg);color:var(--warn)}
-.chip.info{background:var(--info-bg);color:var(--info)}
-.chip.idle{background:var(--soft);color:var(--muted)}
+.task{display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 12px;align-items:start;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.task .num{grid-row:span 3;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:14px;background:var(--soft);color:var(--muted)}
+.task.done .num{background:var(--ok);color:var(--surface)}
+.task b{font-weight:600}
+.task .sub{font-size:14px;color:var(--muted)}
+.task .btn{margin-top:8px;justify-self:start}
 
-.check{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer;user-select:none}
-.check input{width:17px;height:17px;accent-color:var(--ok);margin:0}
+.keyname{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:4px}
+.keyname code{background:var(--soft);border-radius:6px;padding:4px 8px;font-size:15px}
+ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
+.note{background:var(--info-bg);border-radius:10px;padding:12px 14px;font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
 
-.agents{display:grid;gap:12px}
-.agent{border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:10px;background:var(--bg)}
-.agent-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.agent-top .mono{font-weight:500}
-
-.files{display:grid;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.file{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
-.file:first-child{border-top:0}
-.file .path{font-family:var(--mono);font-size:13.5px;word-break:break-all}
-.file .desc{font-size:13px;color:var(--muted)}
-.file .actions{justify-content:flex-end}
-@media (max-width:560px){.file{grid-template-columns:minmax(0,1fr)}.file .actions{justify-content:flex-start}}
-
-details{border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-details summary{cursor:pointer;padding:9px 12px;font-size:13.5px;font-weight:600}
-pre{margin:0;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--code);border-top:1px solid var(--line);max-height:360px}
-
-.note{border-radius:8px;padding:12px 14px;font-size:14px;display:grid;gap:4px}
-.note.info{background:var(--info-bg)}
-.note.warn{background:var(--warn-bg)}
-.note b{font-weight:600}
-ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:6px;font-size:14px;z-index:5;max-width:calc(100% - 32px)}
-.foot{color:var(--muted);font-size:13px;text-align:left;max-width:70ch}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.done-box{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:12px 14px;font-weight:600;font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:5;max-width:calc(100% - 32px)}
 </style>
 
 <div class="wrap">
-  <header class="top">
-    <span class="eyebrow">Mesa dos Agentes · instalação</span>
-    <h1>Conecte a Mesa dos Agentes ao seu GitHub</h1>
-    <p class="lede">Tudo roda no GitHub Actions do seu repositório, sem servidor para contratar. O modelo de IA usa a sua própria chave, guardada nos secrets do repositório: ela nunca passa por esta página nem por nós.</p>
-    <div class="flow" aria-label="Como funciona">
-      <div class="node"><b>Issue com a label <code>agente</code></b><span>é o pedido da tarefa</span></div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>GitHub Actions</b><span>lê README, STATUS, backlog e tickets</span></div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>Modelo de IA com a sua chave</b><span>Anthropic, OpenAI ou compatível</span></div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>Comentário na Issue</b><span>com modelo, tokens e link da execução</span></div>
-    </div>
+  <header>
+    <h1>Instale a Mesa dos Agentes no seu GitHub</h1>
+    <p class="lede">Cinco passos curtos. Tudo roda no GitHub do seu repositório.</p>
   </header>
 
-  <div class="layout">
-    <nav class="rail" aria-label="Etapas">
-      <div class="meter" aria-hidden="true"><i id="meter"></i></div>
-      <span class="muted" id="progress-label" style="font-size:13px">0 de 6 etapas</span>
-      <ol id="rail"></ol>
-    </nav>
+  <div class="progress" id="progress" aria-label="Progresso"></div>
+  <span class="count" id="count">Passo 1 de 5</span>
 
-    <main class="steps">
-      <section class="step" id="repositorio" data-step="repositorio">
-        <div class="step-head">
-          <div class="t"><span class="dot">1</span><h2>Repositório</h2></div>
-          <span class="chip idle" data-status="repositorio">pendente</span>
-        </div>
-        <p class="why">Informe o repositório que vai receber os agentes. Você precisa de permissão de escrita nele.</p>
-        <div class="row">
-          <div class="field">
-            <label for="repo">Repositório</label>
-            <input type="text" id="repo" class="mono" placeholder="empresa/produto" autocomplete="off" spellcheck="false">
-            <small>Formato <code>dono/nome</code>. Pode colar o link do GitHub.</small>
-          </div>
-          <div class="field">
-            <label for="branch">Branch principal</label>
-            <input type="text" id="branch" class="mono" value="main" autocomplete="off" spellcheck="false">
-            <small>As Issues só disparam o workflow que está nesta branch.</small>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" id="open-repo" target="_blank" rel="noopener">Abrir repositório</a>
-          <span class="muted" id="repo-msg" style="font-size:13px"></span>
-        </div>
-      </section>
+  <section class="card" data-step="0">
+    <h2>Qual é o seu repositório?</h2>
+    <div class="field">
+      <label class="lbl" for="repo">Repositório no GitHub</label>
+      <input type="text" id="repo" class="mono" placeholder="empresa/produto" autocomplete="off" spellcheck="false">
+      <span class="hint" id="repo-hint">Pode colar o link do repositório.</span>
+    </div>
+    <button class="linkbtn" type="button" id="show-branch">A branch principal não se chama main?</button>
+    <div class="field" id="branch-box" hidden>
+      <label class="lbl" for="branch">Branch principal</label>
+      <input type="text" id="branch" class="mono" value="main" autocomplete="off" spellcheck="false">
+    </div>
+  </section>
 
-      <section class="step" id="agentes" data-step="agentes">
-        <div class="step-head">
-          <div class="t"><span class="dot">2</span><h2>Agentes e modelo</h2></div>
-          <span class="chip idle" data-status="agentes">pendente</span>
-        </div>
-        <p class="why">Cada agente tem um papel e instruções. Na Issue, a linha <code>Agente: id</code> escolhe quem responde; sem ela, responde o primeiro da lista.</p>
-        <div class="row">
-          <div class="field">
-            <label for="provedor">Provedor do modelo</label>
-            <select id="provedor">
-              <option value="anthropic">Anthropic (Claude)</option>
-              <option value="openai">OpenAI</option>
-              <option value="compativel">Outro compatível com a API da OpenAI</option>
-            </select>
-            <small>A cobrança de cada tarefa vai para a conta do cliente neste provedor.</small>
-          </div>
-          <div class="field">
-            <label for="modelo">Modelo</label>
-            <input type="text" id="modelo" class="mono" list="modelos-sugeridos" spellcheck="false" autocomplete="off">
-            <datalist id="modelos-sugeridos"></datalist>
-            <small id="modelo-dica"></small>
-          </div>
-          <div class="field" id="base-url-box" hidden>
-            <label for="base-url">Endereço da API</label>
-            <input type="text" id="base-url" class="mono" placeholder="https://openrouter.ai/api/v1" spellcheck="false" autocomplete="off">
-            <small>A parte antes de <code>/chat/completions</code>.</small>
-          </div>
-          <div class="field">
-            <label for="arquivos">Arquivos de contexto</label>
-            <input type="text" id="arquivos" class="mono" spellcheck="false">
-            <small>Separados por vírgula. Arquivos <code>.env</code> e chaves nunca são lidos.</small>
-          </div>
-          <div class="field">
-            <label for="pasta">Pasta de tickets</label>
-            <input type="text" id="pasta" class="mono" spellcheck="false">
-            <small>Até 8 arquivos <code>.md</code> desta pasta entram no contexto.</small>
-          </div>
-        </div>
-        <div class="agents" id="agent-list"></div>
-        <div class="actions">
-          <button class="btn small" type="button" id="add-agent">Adicionar agente</button>
-          <label class="check"><input type="checkbox" id="done-agentes" data-done="agentes"> Agentes revisados</label>
-        </div>
-      </section>
+  <section class="card" data-step="1" hidden>
+    <h2>Adicione os dois arquivos</h2>
+    <p class="hint">Cada botão abre o GitHub com o nome do arquivo já preenchido. Lá, clique no botão verde <b>Commit changes</b>.</p>
+    <div class="task" id="task-1">
+      <span class="num">1</span>
+      <b>O workflow</b>
+      <span class="sub">O conteúdo já vai preenchido.</span>
+      <a class="btn primary" id="file-1" target="_blank" rel="noopener">Criar o arquivo 1</a>
+    </div>
+    <div class="task" id="task-2">
+      <span class="num">2</span>
+      <b>O agente</b>
+      <span class="sub">O botão copia o conteúdo. No GitHub, clique na área de texto, cole com Ctrl+V (Cmd+V no Mac) e faça o commit.</span>
+      <a class="btn primary" id="file-2" target="_blank" rel="noopener">Copiar e criar o arquivo 2</a>
+    </div>
+  </section>
 
-      <section class="step" id="arquivos-step" data-step="arquivos">
-        <div class="step-head">
-          <div class="t"><span class="dot">3</span><h2>Instalar os arquivos</h2></div>
-          <span class="chip idle" data-status="arquivos">pendente</span>
-        </div>
-        <p class="why">São três arquivos no seu repositório. Cada botão abre a tela de novo arquivo do GitHub com o caminho preenchido; revise e clique em <b>Commit changes</b>.</p>
-        <div class="files" id="file-list"></div>
-        <div class="note info"><b>Arquivo grande demais para o link?</b><span>Quando o conteúdo não cabe no endereço, o botão copia o texto antes de abrir o GitHub. Cole no editor e faça o commit.</span></div>
-      </section>
+  <section class="card" data-step="2" hidden>
+    <h2>Salve a sua chave de IA</h2>
+    <p class="hint">Use uma chave da Anthropic ou da OpenAI. A Mesa reconhece qual é pela própria chave.</p>
+    <div class="row">
+      <a class="btn" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Criar chave na Anthropic</a>
+      <a class="btn" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">Criar chave na OpenAI</a>
+    </div>
+    <ol class="simple">
+      <li>Abra a tela de secrets do repositório.</li>
+      <li>Em <b>Name</b>, use este nome:
+        <span class="keyname"><code>SAASAGENTS_API_KEY</code><button class="linkbtn" type="button" id="copy-name">copiar</button></span>
+      </li>
+      <li>Em <b>Secret</b>, cole a chave e clique em <b>Add secret</b>.</li>
+    </ol>
+    <a class="btn primary block" id="open-secrets" target="_blank" rel="noopener">Abrir a tela de secrets</a>
+    <p class="note">A chave fica guardada só no GitHub, criptografada. Esta página não vê nem guarda a chave.</p>
+  </section>
 
-      <section class="step" id="chave" data-step="chave">
-        <div class="step-head">
-          <div class="t"><span class="dot">4</span><h2>Salvar a chave do modelo</h2></div>
-          <span class="chip idle" data-status="chave">pendente</span>
-        </div>
-        <p class="why">Gere uma chave no painel do provedor e salve como secret do repositório. O workflow lê o secret na hora de rodar; ninguém mais vê o valor.</p>
-        <ol class="how">
-          <li>No painel do provedor, crie uma chave de API. <a id="provider-keys" target="_blank" rel="noopener">Abrir o painel de chaves</a></li>
-          <li>Abra os secrets do repositório e clique em <b>New repository secret</b>.</li>
-          <li>Em <b>Name</b>, use exatamente <code id="secret-name">SAASAGENTS_API_KEY</code>. Em <b>Secret</b>, cole a chave e salve.</li>
-        </ol>
-        <div class="actions">
-          <a class="btn primary" id="open-secrets" target="_blank" rel="noopener">Abrir os secrets do repositório</a>
-          <button class="btn" type="button" id="copy-secret-name">Copiar o nome</button>
-          <label class="check"><input type="checkbox" data-done="chave"> Secret salvo</label>
-        </div>
-        <div class="note info"><b>A chave não passa por aqui.</b><span>Esta página não pede nem guarda a chave. Ela fica criptografada nos secrets do GitHub e só é entregue ao job do Actions.</span></div>
-      </section>
+  <section class="card" data-step="3" hidden>
+    <h2>Teste a conexão</h2>
+    <ol class="simple">
+      <li>Abra o workflow <b>Mesa dos Agentes</b>.</li>
+      <li>Clique em <b>Run workflow</b> e depois no botão verde <b>Run workflow</b>.</li>
+      <li>Em cerca de um minuto aparece <b>Teste de conexão aprovado</b>.</li>
+    </ol>
+    <a class="btn primary block" id="open-actions" target="_blank" rel="noopener">Abrir o workflow</a>
+    <p class="note">Se der erro, a própria mensagem diz o que corrigir.</p>
+  </section>
 
-      <section class="step" id="ativar" data-step="ativar">
-        <div class="step-head">
-          <div class="t"><span class="dot">5</span><h2>Ativar e testar</h2></div>
-          <span class="chip idle" data-status="ativar">pendente</span>
-        </div>
-        <ol class="how">
-          <li>Abra <b>Actions → Mesa dos Agentes</b> no seu repositório.</li>
-          <li>Clique em <b>Run workflow</b> e mantenha a ação <code>configurar</code>.</li>
-          <li>A execução cria a label <code>agente</code> e faz um teste de conexão com o modelo. O resultado aparece no resumo da execução.</li>
-        </ol>
-        <div class="note warn"><b>Se o teste falhar</b><span>O resumo da execução diz o motivo e o que fazer: secret ausente, chave recusada, conta sem créditos ou modelo que não existe no provedor.</span></div>
-        <div class="actions">
-          <a class="btn primary" id="open-actions" target="_blank" rel="noopener">Abrir o workflow no Actions</a>
-          <label class="check"><input type="checkbox" data-done="ativar"> Teste de conexão aprovado</label>
-        </div>
-      </section>
+  <section class="card" data-step="4" hidden>
+    <h2>Peça a primeira tarefa</h2>
+    <div class="field">
+      <label class="lbl" for="pedido">O que você quer que o agente faça?</label>
+      <textarea id="pedido">Resuma o estado atual do produto e sugira os três próximos passos.</textarea>
+    </div>
+    <a class="btn primary block" id="open-issue" target="_blank" rel="noopener">Criar a tarefa no GitHub</a>
+    <p class="hint">A tarefa vira uma Issue. A resposta chega como comentário em cerca de um minuto. Para continuar a conversa, comente <code>/agente</code> seguido do novo pedido.</p>
+    <div class="done-box">Pronto. A Mesa dos Agentes está instalada.</div>
+  </section>
 
-      <section class="step" id="tarefa" data-step="tarefa">
-        <div class="step-head">
-          <div class="t"><span class="dot">6</span><h2>Primeira tarefa</h2></div>
-          <span class="chip idle" data-status="tarefa">pendente</span>
-        </div>
-        <p class="why">A tarefa vira uma Issue com a label <code>agente</code>. A resposta chega como comentário em cerca de um minuto.</p>
-        <div class="row">
-          <div class="field">
-            <label for="t-titulo">Título</label>
-            <input type="text" id="t-titulo" value="Resumo do estado atual do produto">
-          </div>
-          <div class="field">
-            <label for="t-agente">Agente</label>
-            <select id="t-agente"></select>
-          </div>
-        </div>
-        <div class="field">
-          <label for="t-pedido">Pedido</label>
-          <textarea id="t-pedido" rows="3">Separe o que está implementado, em validação e apenas planejado, e sugira os três próximos passos.</textarea>
-        </div>
-        <div class="actions">
-          <a class="btn primary" id="open-issue" target="_blank" rel="noopener">Criar a Issue no GitHub</a>
-          <label class="check"><input type="checkbox" data-done="tarefa"> Resposta recebida</label>
-        </div>
-        <details>
-          <summary>Continuar a conversa e acompanhar</summary>
-          <div style="padding:12px;display:grid;gap:10px;font-size:14px">
-            <p>Na própria Issue, comente <code>/agente</code> seguido do novo pedido. Para chamar outro agente, use <code>/agente @revisor quais riscos você vê?</code>. Só donos, membros e colaboradores do repositório disparam o agente.</p>
-            <div class="actions">
-              <a class="btn small" id="open-issues" target="_blank" rel="noopener">Issues com a label agente</a>
-              <a class="btn small" id="open-runs" target="_blank" rel="noopener">Execuções no Actions</a>
-            </div>
-          </div>
-        </details>
-      </section>
-
-      <p class="foot">Custos: cada tarefa é cobrada pelo provedor do modelo na conta do cliente, conforme os tokens usados. O comentário de cada resposta mostra os tokens de entrada e de saída. Os minutos do Actions seguem a cota do repositório. Esta página não estima valores.</p>
-    </main>
+  <div class="nav">
+    <button class="btn" type="button" id="back">Voltar</button>
+    <button class="btn primary" type="button" id="next">Próximo</button>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -299,242 +167,107 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
 <script type="application/json" id="arquivos-base">__ARQUIVOS__</script>
 <script>
 (() => {
-  const STEPS = [
-    { id: 'repositorio', label: 'Repositório', anchor: 'repositorio' },
-    { id: 'agentes', label: 'Agentes e modelo', anchor: 'agentes' },
-    { id: 'arquivos', label: 'Instalar arquivos', anchor: 'arquivos-step' },
-    { id: 'chave', label: 'Salvar a chave', anchor: 'chave' },
-    { id: 'ativar', label: 'Ativar e testar', anchor: 'ativar' },
-    { id: 'tarefa', label: 'Primeira tarefa', anchor: 'tarefa' },
-  ];
+  const TOTAL = 5;
   const $ = id => document.getElementById(id);
-  let base = { workflow: '', runner: '', config: null };
-  try { base = JSON.parse($('arquivos-base').textContent); } catch (e) { /* página sem arquivos embutidos */ }
-  const defaults = base.config || {
-    provedor: 'anthropic', modelo: 'claude-sonnet-5', base_url: '', max_tokens: 1500,
-    contexto: { arquivos: ['README.md', 'BACKLOG.md', 'STATUS.md', 'package.json'], pasta_tickets: 'tickets', max_tickets: 8, max_por_arquivo: 4000, max_total: 18000 },
-    agentes: [{ id: 'analista', nome: 'Analista', papel: 'Analista de produto', instrucoes: 'Analise o pedido com base nos documentos do repositório e proponha próximos passos objetivos.' }],
-  };
+  let base = { workflow: '', runner: '' };
+  try { base = JSON.parse($('arquivos-base').textContent); } catch (e) { /* prévia sem arquivos */ }
+  const FILES = [
+    { path: '.github/workflows/agentes.yml', content: () => base.workflow },
+    { path: '.saasagents/run.mjs', content: () => base.runner },
+  ];
 
-  const KEY = 'mesa-agentes-instalacao-v2';
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* armazenamento indisponível */ } };
-  const stored = load();
-  const state = Object.assign({
-    repo: '', branch: 'main', provedor: defaults.base_url ? 'compativel' : (defaults.provedor || 'anthropic'), modelo: defaults.modelo, baseUrl: defaults.base_url || '',
-    arquivos: defaults.contexto.arquivos.join(', '), pasta: defaults.contexto.pasta_tickets || '',
-    agentes: JSON.parse(JSON.stringify(defaults.agentes)), done: {}, files: {},
-  }, stored || {});
+  const KEY = 'mesa-agentes-simples-v1';
+  let state = { repo: '', branch: 'main', step: 0, files: [false, false] };
+  try { state = Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* sem armazenamento */ }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sem armazenamento */ } };
   const fromQuery = new URLSearchParams(location.search).get('repo');
   if (fromQuery) state.repo = fromQuery;
 
-  function parseRepo(value) {
+  const parseRepo = value => {
     const v = String(value || '').trim().replace(/\.git$/, '').replace(/\/+$/, '');
     const m = v.match(/(?:github\.com[/:])?([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/);
     return m ? `${m[1]}/${m[2]}` : '';
-  }
-  const repo = () => parseRepo(state.repo);
-  const gh = path => `https://github.com/${repo()}${path}`;
-  const slug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
-  const PROVIDERS = {
-    anthropic: { modelo: 'claude-sonnet-5', sugestoes: ['claude-sonnet-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'], dica: 'Sonnet 5 equilibra qualidade e custo; Haiku 4.5 é o mais barato.', chaves: 'https://console.anthropic.com/settings/keys' },
-    openai: { modelo: 'gpt-6-luna', sugestoes: ['gpt-6-luna', 'gpt-6-sol'], dica: 'Luna é o mais econômico; Sol responde com mais profundidade.', chaves: 'https://platform.openai.com/api-keys' },
-    compativel: { modelo: '', sugestoes: [], dica: 'Use o id do modelo exatamente como o provedor publica.', chaves: '' },
   };
-  const modelo = () => state.modelo.trim() || PROVIDERS[state.provedor].modelo;
+  const repo = () => parseRepo(state.repo);
+  const branch = () => encodeURIComponent((state.branch || 'main').trim() || 'main');
+  const gh = path => `https://github.com/${repo()}${path}`;
 
-  function configJson() {
-    const agentes = state.agentes
-      .map(a => ({ id: slug(a.id || a.nome), nome: a.nome.trim() || a.id, papel: a.papel.trim(), instrucoes: a.instrucoes.trim() }))
-      .filter(a => a.id);
-    return JSON.stringify({
-      provedor: state.provedor === 'anthropic' ? 'anthropic' : 'openai',
-      modelo: modelo(),
-      base_url: state.provedor === 'compativel' ? state.baseUrl.trim() : '',
-      max_tokens: defaults.max_tokens || 1500,
-      contexto: {
-        ...defaults.contexto,
-        arquivos: state.arquivos.split(',').map(s => s.trim()).filter(Boolean),
-        pasta_tickets: state.pasta.trim(),
-      },
-      agentes,
-    }, null, 2) + '\n';
+  function fileUrl(file) {
+    const full = gh(`/new/${branch()}?filename=${encodeURIComponent(file.path)}&value=${encodeURIComponent(file.content())}`);
+    if (full.length <= 7500) return { url: full, paste: false };
+    return { url: gh(`/new/${branch()}?filename=${encodeURIComponent(file.path)}`), paste: true };
   }
 
-  const FILES = [
-    { key: 'workflow', path: '.github/workflows/agentes.yml', desc: 'Workflow: dispara com Issues, comentários /agente e execução manual.', content: () => base.workflow },
-    { key: 'runner', path: '.saasagents/run.mjs', desc: 'Executor em Node.js, sem dependências. Monta o contexto e chama o modelo.', content: () => base.runner },
-    { key: 'config', path: '.saasagents/agentes.json', desc: 'Seus agentes, o modelo e os arquivos de contexto definidos na etapa 2.', content: configJson },
-  ];
-
-  function newFileUrl(file) {
-    const content = file.content();
-    const full = gh(`/new/${encodeURIComponent(state.branch || 'main')}?filename=${encodeURIComponent(file.path)}&value=${encodeURIComponent(content)}`);
-    if (full.length <= 7500) return { url: full, needsPaste: false };
-    return { url: gh(`/new/${encodeURIComponent(state.branch || 'main')}?filename=${encodeURIComponent(file.path)}`), needsPaste: true };
-  }
-
-  let toastTimer;
+  let timer;
   function toast(msg) {
     const t = $('toast'); t.textContent = msg; t.hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+    clearTimeout(timer); timer = setTimeout(() => { t.hidden = true; }, 3500);
   }
-  async function copy(text, label) {
-    try { await navigator.clipboard.writeText(text); toast(`${label} copiado.`); return true; }
+  async function copy(text, done) {
+    try { await navigator.clipboard.writeText(text); toast(done); }
     catch (e) {
       const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.select();
       let ok = false; try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-      ta.remove(); toast(ok ? `${label} copiado.` : 'Não foi possível copiar. Use a prévia abaixo do arquivo.'); return ok;
+      ta.remove(); toast(ok ? done : 'Não foi possível copiar automaticamente.');
     }
   }
 
-  function renderAgents() {
-    const list = $('agent-list');
-    list.innerHTML = '';
-    state.agentes.forEach((a, i) => {
-      const el = document.createElement('div');
-      el.className = 'agent';
-      el.innerHTML = `
-        <div class="agent-top"><span class="mono" data-role="title"></span>
-          <button class="btn small" type="button" data-remove ${state.agentes.length < 2 ? 'aria-disabled="true" disabled' : ''}>Remover</button></div>
-        <div class="row">
-          <div class="field"><label for="ag-${i}-nome">Nome</label><input type="text" id="ag-${i}-nome" data-k="nome"></div>
-          <div class="field"><label for="ag-${i}-id">id</label><input type="text" id="ag-${i}-id" class="mono" data-k="id" spellcheck="false"></div>
-          <div class="field"><label for="ag-${i}-papel">Papel</label><input type="text" id="ag-${i}-papel" data-k="papel"></div>
-        </div>
-        <div class="field"><label for="ag-${i}-inst">Instruções</label><textarea id="ag-${i}-inst" data-k="instrucoes" rows="2"></textarea></div>`;
-      el.querySelectorAll('[data-k]').forEach(input => {
-        input.value = a[input.dataset.k] || '';
-        input.addEventListener('input', () => {
-          a[input.dataset.k] = input.value;
-          if (input.dataset.k === 'nome' && !a._idEditado) { a.id = slug(input.value); el.querySelector('[data-k="id"]').value = a.id; }
-          if (input.dataset.k === 'id') a._idEditado = true;
-          el.querySelector('[data-role=title]').textContent = `Agente: ${slug(a.id || a.nome) || '—'}`;
-          update();
-        });
-      });
-      el.querySelector('[data-role=title]').textContent = `Agente: ${slug(a.id || a.nome) || '—'}`;
-      el.querySelector('[data-remove]').addEventListener('click', () => { state.agentes.splice(i, 1); renderAgents(); update(); });
-      list.appendChild(el);
-    });
+  function setLink(id, url) {
+    const a = $(id);
+    if (url) { a.href = url; a.removeAttribute('aria-disabled'); } else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
   }
 
-  function renderFiles() {
-    const list = $('file-list');
-    list.innerHTML = '';
-    FILES.forEach(file => {
-      const el = document.createElement('div');
-      el.className = 'file';
-      el.innerHTML = `
-        <div style="display:grid;gap:3px;min-width:0"><span class="path"></span><span class="desc"></span></div>
-        <div class="actions">
-          <a class="btn small primary" target="_blank" rel="noopener" data-open>Criar no GitHub</a>
-          <button class="btn small" type="button" data-copy>Copiar</button>
-          <label class="check"><input type="checkbox" data-file> Feito</label>
-        </div>
-        <details style="grid-column:1/-1"><summary>Ver conteúdo</summary><pre></pre></details>`;
-      el.querySelector('.path').textContent = file.path;
-      el.querySelector('.desc').textContent = file.desc;
-      const box = el.querySelector('[data-file]');
-      box.checked = !!state.files[file.key];
-      box.addEventListener('change', () => { state.files[file.key] = box.checked; update(); });
-      el.querySelector('[data-copy]').addEventListener('click', () => copy(file.content(), file.path));
-      el.querySelector('[data-open]').addEventListener('click', event => {
-        if (!repo()) { event.preventDefault(); toast('Informe o repositório na etapa 1.'); return; }
-        const { needsPaste } = newFileUrl(file);
-        if (needsPaste) copy(file.content(), 'Conteúdo de ' + file.path);
-      });
-      el.dataset.key = file.key;
-      list.appendChild(el);
-    });
-  }
+  const canAdvance = () => state.step !== 0 || !!repo();
 
-  function refreshFiles() {
-    document.querySelectorAll('#file-list .file').forEach(el => {
-      const file = FILES.find(f => f.key === el.dataset.key);
-      const content = file.content();
-      el.querySelector('pre').textContent = content || '(conteúdo indisponível nesta prévia)';
-      const link = el.querySelector('[data-open]');
-      if (repo()) {
-        const { url, needsPaste } = newFileUrl(file);
-        link.href = url; link.removeAttribute('aria-disabled');
-        link.textContent = needsPaste ? 'Copiar e abrir no GitHub' : 'Criar no GitHub';
-      } else { link.removeAttribute('href'); link.setAttribute('aria-disabled', 'true'); }
+  function render() {
+    const ok = !!repo();
+    $('repo-hint').textContent = state.repo && !ok ? 'Use o formato empresa/produto.' : (ok ? `github.com/${repo()}` : 'Pode colar o link do repositório.');
+    FILES.forEach((file, i) => {
+      setLink(`file-${i + 1}`, ok ? fileUrl(file).url : '');
+      $(`task-${i + 1}`).classList.toggle('done', !!state.files[i]);
+      $(`task-${i + 1}`).querySelector('.num').textContent = state.files[i] ? '✓' : String(i + 1);
     });
-  }
+    setLink('open-secrets', ok ? gh('/settings/secrets/actions/new') : '');
+    setLink('open-actions', ok ? gh('/actions/workflows/agentes.yml') : '');
+    const body = `Agente: analista\n\n${$('pedido').value.trim()}`;
+    setLink('open-issue', ok ? gh(`/issues/new?labels=agente&title=${encodeURIComponent('Primeira tarefa da Mesa dos Agentes')}&body=${encodeURIComponent(body)}`) : '');
 
-  function issueUrl() {
-    const agente = $('t-agente').value;
-    const body = `Agente: ${agente}\n\n${$('t-pedido').value.trim()}`;
-    return gh(`/issues/new?labels=agente&title=${encodeURIComponent($('t-titulo').value.trim())}&body=${encodeURIComponent(body)}`);
-  }
-
-  function update() {
-    const r = repo();
-    const repoOk = !!r;
-    state.done.repositorio = repoOk;
-    state.done.arquivos = FILES.every(f => state.files[f.key]);
-    $('repo-msg').textContent = state.repo && !repoOk ? 'Use o formato dono/nome.' : (repoOk ? `github.com/${r}` : '');
-    const links = { 'open-repo': '', 'open-actions': '/actions/workflows/agentes.yml', 'open-issues': '/issues?q=label%3Aagente', 'open-runs': '/actions/workflows/agentes.yml' };
-    Object.entries(links).forEach(([id, path]) => {
-      const a = $(id);
-      if (repoOk) { a.href = gh(path); a.removeAttribute('aria-disabled'); } else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
-    });
-    const sel = $('t-agente'); const prev = sel.value;
-    const opts = state.agentes.map(a => slug(a.id || a.nome)).filter(Boolean);
-    sel.innerHTML = opts.map(id => `<option value="${id}">${id}</option>`).join('');
-    if (opts.includes(prev)) sel.value = prev;
-    const issue = $('open-issue');
-    if (repoOk) { issue.href = issueUrl(); issue.removeAttribute('aria-disabled'); } else { issue.removeAttribute('href'); issue.setAttribute('aria-disabled', 'true'); }
-    const prov = PROVIDERS[state.provedor] || PROVIDERS.anthropic;
-    $('base-url-box').hidden = state.provedor !== 'compativel';
-    $('modelo-dica').textContent = prov.dica;
-    $('modelos-sugeridos').innerHTML = prov.sugestoes.map(m => `<option value="${m}"></option>`).join('');
-    $('modelo').placeholder = prov.modelo || 'id do modelo';
-    const keys = $('provider-keys');
-    if (prov.chaves) { keys.href = prov.chaves; keys.hidden = false; } else { keys.removeAttribute('href'); keys.hidden = true; }
-    const secrets = $('open-secrets');
-    if (repoOk) { secrets.href = gh('/settings/secrets/actions/new'); secrets.removeAttribute('aria-disabled'); } else { secrets.removeAttribute('href'); secrets.setAttribute('aria-disabled', 'true'); }
-    refreshFiles();
-    document.querySelectorAll('[data-done]').forEach(box => { box.checked = !!state.done[box.dataset.done]; });
-
-    const count = STEPS.filter(s => state.done[s.id]).length;
-    $('meter').style.width = `${(count / STEPS.length) * 100}%`;
-    $('progress-label').textContent = `${count} de ${STEPS.length} etapas`;
-    $('rail').innerHTML = STEPS.map((s, i) => `<li class="${state.done[s.id] ? 'done' : ''}"><a href="#${s.anchor}"><span class="dot">${state.done[s.id] ? '✓' : i + 1}</span>${s.label}</a></li>`).join('');
-    STEPS.forEach((s, i) => {
-      const chip = document.querySelector(`[data-status="${s.id}"]`);
-      const done = !!state.done[s.id];
-      chip.className = 'chip ' + (done ? 'ok' : 'idle');
-      chip.textContent = done ? 'concluída' : 'pendente';
-      const dot = document.querySelector(`[data-step="${s.id}"] .step-head .dot`);
-      dot.parentElement.parentElement.parentElement.classList.toggle('done', done);
-      dot.textContent = done ? '✓' : String(i + 1);
-    });
+    document.querySelectorAll('[data-step]').forEach(card => { card.hidden = Number(card.dataset.step) !== state.step; });
+    $('count').textContent = `Passo ${state.step + 1} de ${TOTAL}`;
+    $('progress').innerHTML = Array.from({ length: TOTAL }, (_, i) =>
+      `<button type="button" data-go="${i}" class="${i < state.step ? 'done' : i === state.step ? 'current' : ''}" aria-label="Ir para o passo ${i + 1}"></button>`).join('');
+    $('back').style.visibility = state.step === 0 ? 'hidden' : 'visible';
+    $('next').hidden = state.step === TOTAL - 1;
+    $('next').disabled = !canAdvance();
     save();
   }
 
-  $('repo').value = state.repo; $('branch').value = state.branch;
-  if (!PROVIDERS[state.provedor]) state.provedor = 'anthropic';
-  $('provedor').value = state.provedor; $('modelo').value = state.modelo; $('base-url').value = state.baseUrl;
-  $('arquivos').value = state.arquivos; $('pasta').value = state.pasta;
-  [['repo', 'repo'], ['branch', 'branch'], ['modelo', 'modelo'], ['base-url', 'baseUrl'], ['arquivos', 'arquivos'], ['pasta', 'pasta']].forEach(([id, key]) => {
-    $(id).addEventListener('input', () => { state[key] = $(id).value; update(); });
+  function go(step) {
+    if (step > state.step && !canAdvance()) return;
+    if (step > 0 && !repo()) step = 0;
+    state.step = Math.max(0, Math.min(TOTAL - 1, step));
+    render();
+  }
+
+  $('repo').value = state.repo;
+  $('branch').value = state.branch;
+  if ((state.branch || 'main') !== 'main') { $('branch-box').hidden = false; $('show-branch').hidden = true; }
+  $('repo').addEventListener('input', () => { state.repo = $('repo').value; render(); });
+  $('repo').addEventListener('keydown', e => { if (e.key === 'Enter') go(state.step + 1); });
+  $('branch').addEventListener('input', () => { state.branch = $('branch').value; render(); });
+  $('show-branch').addEventListener('click', () => { $('branch-box').hidden = false; $('show-branch').hidden = true; $('branch').focus(); });
+  $('pedido').addEventListener('input', render);
+  $('copy-name').addEventListener('click', () => copy('SAASAGENTS_API_KEY', 'Nome copiado.'));
+  FILES.forEach((file, i) => {
+    $(`file-${i + 1}`).addEventListener('click', () => {
+      if (fileUrl(file).paste) copy(file.content(), 'Conteúdo copiado. Cole no GitHub e faça o commit.');
+      state.files[i] = true; render();
+    });
   });
-  $('provedor').addEventListener('change', () => {
-    state.provedor = $('provedor').value;
-    state.modelo = PROVIDERS[state.provedor].modelo; $('modelo').value = state.modelo;
-    update();
-  });
-  $('copy-secret-name').addEventListener('click', () => copy('SAASAGENTS_API_KEY', 'Nome do secret'));
-  ['t-titulo', 't-pedido', 't-agente'].forEach(id => $(id).addEventListener('input', update));
-  document.querySelectorAll('[data-done]').forEach(box => box.addEventListener('change', () => { state.done[box.dataset.done] = box.checked; update(); }));
-  $('add-agent').addEventListener('click', () => {
-    state.agentes.push({ id: `agente-${state.agentes.length + 1}`, nome: '', papel: '', instrucoes: '' });
-    renderAgents(); update();
-    const last = document.querySelector('#agent-list .agent:last-child input'); if (last) last.focus();
-  });
-  renderAgents(); renderFiles(); update();
+  $('next').addEventListener('click', () => go(state.step + 1));
+  $('back').addEventListener('click', () => go(state.step - 1));
+  $('progress').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(Number(b.dataset.go)); });
+  go(state.step);
 })();
 </script>

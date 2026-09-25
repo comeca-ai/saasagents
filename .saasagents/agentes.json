@@ -1,6 +1,6 @@
 {
-  "provedor": "anthropic",
-  "modelo": "claude-sonnet-5",
+  "provedor": "",
+  "modelo": "",
   "base_url": "",
   "max_tokens": 1500,
   "contexto": {

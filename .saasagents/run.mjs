@@ -18,8 +18,8 @@ export const PROVIDERS = {
 };
 
 export const DEFAULT_CONFIG = {
-  provedor: 'anthropic',
-  modelo: PROVIDERS.anthropic.modelo,
+  provedor: '',
+  modelo: '',
   base_url: '',
   max_tokens: 1500,
   contexto: {
@@ -67,9 +67,17 @@ export async function loadConfig(root) {
   return config;
 }
 
-// Provedor, modelo e endereço: variável do repositório > arquivo de configuração > padrão.
+// Reconhece o provedor pelo formato da chave: Anthropic começa com "sk-ant-".
+export function detectProvider(apiKey) {
+  const key = String(apiKey || '').trim();
+  if (/^sk-ant-/.test(key)) return 'anthropic';
+  if (/^sk-/.test(key)) return 'openai';
+  return '';
+}
+
+// Provedor, modelo e endereço: variável do repositório > arquivo de configuração > formato da chave > padrão.
 export function resolveProvider(config, env = {}, override = {}) {
-  const provedor = String(env.SAASAGENTS_PROVIDER || config.provedor || 'anthropic').toLowerCase();
+  const provedor = String(env.SAASAGENTS_PROVIDER || config.provedor || detectProvider(env.SAASAGENTS_API_KEY) || 'anthropic').toLowerCase();
   if (!PROVIDERS[provedor]) throw new Error(`Provedor "${provedor}" desconhecido. Use "anthropic" ou "openai" em .saasagents/agentes.json.`);
   const modelo = override.modelo || env.SAASAGENTS_MODEL || config.modelo || PROVIDERS[provedor].modelo;
   const baseUrl = String(env.SAASAGENTS_BASE_URL || config.base_url || PROVIDERS[provedor].base_url).replace(/\/+$/, '');

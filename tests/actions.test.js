@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  resolveTask, pickAgent, buildContext, loadConfig, classifyError, callModel, main, resolveProvider, DEFAULT_CONFIG,
+  resolveTask, pickAgent, buildContext, loadConfig, classifyError, callModel, main, resolveProvider, detectProvider, DEFAULT_CONFIG,
 } from '../.saasagents/run.mjs';
 
 async function fixture(files = {}) {
@@ -96,6 +96,15 @@ test('loadConfig usa o padrão sem arquivo e acusa JSON inválido', async () => 
   assert.equal(cfg.agentes[0].id, 'analista');
   assert.equal(cfg.contexto.max_total, 100);
   assert.equal(cfg.contexto.max_tickets, 8);
+});
+
+test('detectProvider reconhece a chave da Anthropic e da OpenAI', () => {
+  assert.equal(detectProvider('sk-ant-api03-abc'), 'anthropic');
+  assert.equal(detectProvider(' sk-proj-abc '), 'openai');
+  assert.equal(detectProvider('gsk_groq'), '');
+  assert.equal(resolveProvider({ provedor: '', modelo: '' }, { SAASAGENTS_API_KEY: 'sk-proj-x' }).modelo, 'gpt-6-luna');
+  assert.equal(resolveProvider({ provedor: '', modelo: '' }, { SAASAGENTS_API_KEY: 'sk-ant-x' }).provedor, 'anthropic');
+  assert.equal(resolveProvider({ provedor: 'anthropic', modelo: '' }, { SAASAGENTS_API_KEY: 'sk-proj-x' }).provedor, 'anthropic');
 });
 
 test('resolveProvider aplica variável > arquivo > padrão e recusa provedor desconhecido', () => {
