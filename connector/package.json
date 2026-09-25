@@ -1,0 +1,11 @@
+{
+  "name": "saasagents-connector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Conector de contexto da Mesa dos Agentes",
+  "type": "module",
+  "bin": { "saasagents": "cli.mjs" },
+  "engines": { "node": ">=22" },
+  "files": ["cli.mjs", "init.mjs", "template.mjs", "template", "README.md"],
+  "repository": { "type": "git", "url": "https://github.com/comeca-ai/saasagents.git", "directory": "connector" }
+}
