@@ -5,7 +5,8 @@
 <style>
 :root{
   --bg:#f5f6f8;--surface:#ffffff;--ink:#172031;--muted:#5d6779;--line:#dde1e8;--soft:#eef1f5;--accent:#2b59c3;--accent-ink:#ffffff;
-  --ok:#1f8a4c;--ok-bg:#e3f4ea;--info-bg:#e4ebfb;
+  --ok:#1f8a4c;--ok-bg:#e3f4ea;--info-bg:#e4ebfb;--warn:#a86400;--warn-bg:#fdf0da;
+  --gh-green:#1f883d;--gh-green-ink:#ffffff;--code:#f0f2f6;
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -13,13 +14,15 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#10141c;--surface:#181e29;--ink:#e6e9ef;--muted:#9aa3b2;--line:#2a3242;--soft:#1f2633;--accent:#7d9ff0;--accent-ink:#0c1220;
-    --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;
+    --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;--warn:#f0b35a;--warn-bg:#33270f;
+    --gh-green:#238636;--gh-green-ink:#ffffff;--code:#131924;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#10141c;--surface:#181e29;--ink:#e6e9ef;--muted:#9aa3b2;--line:#2a3242;--soft:#1f2633;--accent:#7d9ff0;--accent-ink:#0c1220;
-  --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;
+  --ok:#5fd08e;--ok-bg:#16301f;--info-bg:#1a2645;--warn:#f0b35a;--warn-bg:#33270f;
+  --gh-green:#238636;--gh-green-ink:#ffffff;--code:#131924;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -75,13 +78,59 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
 .nav{display:flex;justify-content:space-between;gap:10px}
 .done-box{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:12px 14px;font-weight:600;font-size:15px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:5;max-width:calc(100% - 32px)}
+.head-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.simbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--warn-bg);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14px}
+.simbar b{color:var(--warn)}
+.simbar .row{gap:8px}
+.btn.small{padding:7px 12px;font-size:14px}
+.pulse{outline:3px solid var(--warn)!important;outline-offset:3px}
+.gh{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);font-size:14px}
+.gh-bar{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--soft);padding:8px 12px;border-bottom:1px solid var(--line);word-break:break-all}
+.gh-body{padding:14px;display:grid;gap:10px}
+.gh-code{margin:0;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto;max-height:170px}
+.gh-btn{display:inline-flex;align-self:start;justify-self:start;background:var(--gh-green);color:var(--gh-green-ink);font-weight:600;border-radius:6px;padding:6px 12px;font-size:14px}
+.gh-btn.pressed{filter:brightness(.85)}
+.gh-ok{color:var(--ok);font-weight:600}
+.gh-field{display:grid;gap:4px}
+.gh-field span{font-size:13px;font-weight:600}
+.gh-input{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:var(--bg);min-height:34px}
+.gh-run{display:grid;gap:6px;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.gh-run .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:600}
+.gh-steps{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.gh-steps li.ok{color:var(--ok)}
+.state{font-size:12px;font-weight:600;border-radius:99px;padding:2px 10px}
+.state.run{background:var(--warn-bg);color:var(--warn)}
+.state.ok{background:var(--ok-bg);color:var(--ok)}
+.gh-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:6px}
+.gh-issue-title{font-size:17px;font-weight:600}
+.gh-label{display:inline-block;background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:1px 9px;font-size:12px;font-weight:600;margin-left:6px}
+.gh-comment{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gh-comment .who{background:var(--soft);padding:6px 12px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+.gh-comment .txt{padding:10px 12px;display:grid;gap:6px}
+.gh-comment h4{margin:0;font-size:15px}
+.gh-comment ul,.gh-comment ol{margin:0;padding-left:20px;display:grid;gap:2px}
+.gh-comment small{color:var(--muted);font-size:12px}
+.example{display:inline-block;background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:0 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-left:6px}
+body.sim .progress button{pointer-events:none}
 </style>
 
 <div class="wrap">
   <header>
     <h1>Instale a Mesa dos Agentes no seu GitHub</h1>
-    <p class="lede">Cinco passos curtos. Tudo roda no GitHub do seu repositório.</p>
+    <div class="head-row">
+      <p class="lede">Cinco passos curtos. Tudo roda no GitHub do seu repositório.</p>
+      <button class="btn small" type="button" id="sim-start">Ver simulação</button>
+    </div>
   </header>
+
+  <div class="simbar" id="simbar" hidden>
+    <span><b>Simulação.</b> <span id="sim-msg">Nada é enviado ao GitHub.</span></span>
+    <span class="row">
+      <button class="btn small" type="button" id="sim-pause">Pausar</button>
+      <button class="btn small" type="button" id="sim-again" hidden>Ver de novo</button>
+      <button class="btn small" type="button" id="sim-exit">Sair da simulação</button>
+    </span>
+  </div>
 
   <div class="progress" id="progress" aria-label="Progresso"></div>
   <span class="count" id="count">Passo 1 de 5</span>
@@ -98,6 +147,7 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
       <label class="lbl" for="branch">Branch principal</label>
       <input type="text" id="branch" class="mono" value="main" autocomplete="off" spellcheck="false">
     </div>
+    <div class="gh" id="sim-0" hidden></div>
   </section>
 
   <section class="card" data-step="1" hidden>
@@ -115,6 +165,7 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
       <span class="sub">O botão copia o conteúdo. No GitHub, clique na área de texto, cole com Ctrl+V (Cmd+V no Mac) e faça o commit.</span>
       <a class="btn primary" id="file-2" target="_blank" rel="noopener">Copiar e criar o arquivo 2</a>
     </div>
+    <div class="gh" id="sim-1" hidden></div>
   </section>
 
   <section class="card" data-step="2" hidden>
@@ -133,6 +184,7 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
     </ol>
     <a class="btn primary block" id="open-secrets" target="_blank" rel="noopener">Abrir a tela de secrets</a>
     <p class="note">A chave fica guardada só no GitHub, criptografada. Esta página não vê nem guarda a chave.</p>
+    <div class="gh" id="sim-2" hidden></div>
   </section>
 
   <section class="card" data-step="3" hidden>
@@ -144,6 +196,7 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
     </ol>
     <a class="btn primary block" id="open-actions" target="_blank" rel="noopener">Abrir o workflow</a>
     <p class="note">Se der erro, a própria mensagem diz o que corrigir.</p>
+    <div class="gh" id="sim-3" hidden></div>
   </section>
 
   <section class="card" data-step="4" hidden>
@@ -155,6 +208,7 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
     <a class="btn primary block" id="open-issue" target="_blank" rel="noopener">Criar a tarefa no GitHub</a>
     <p class="hint">A tarefa vira uma Issue. A resposta chega como comentário em cerca de um minuto. Para continuar a conversa, comente <code>/agente</code> seguido do novo pedido.</p>
     <div class="done-box">Pronto. A Mesa dos Agentes está instalada.</div>
+    <div class="gh" id="sim-4" hidden></div>
   </section>
 
   <div class="nav">
@@ -177,9 +231,10 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
   ];
 
   const KEY = 'mesa-agentes-simples-v1';
+  let sim = null; // simulação em andamento (não salva nada)
   let state = { repo: '', branch: 'main', step: 0, files: [false, false] };
   try { state = Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* sem armazenamento */ }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sem armazenamento */ } };
+  const save = () => { if (sim) return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sem armazenamento */ } };
   const fromQuery = new URLSearchParams(location.search).get('repo');
   if (fromQuery) state.repo = fromQuery;
 
@@ -269,5 +324,153 @@ ol.simple{margin:0;padding-left:22px;display:grid;gap:8px}
   $('back').addEventListener('click', () => go(state.step - 1));
   $('progress').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(Number(b.dataset.go)); });
   go(state.step);
+
+  // ---------- Simulação: mostra o que acontece em cada passo, sem abrir o GitHub ----------
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DEMO = 'sua-empresa/seu-produto';
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function wait(ms) {
+    const run = sim;
+    return new Promise((resolve, reject) => {
+      let left = reduce ? Math.min(ms, 400) : ms;
+      const step = Math.max(10, Math.min(100, left));
+      const tick = () => {
+        if (sim !== run) return reject(new Error('fim'));
+        if (!sim.paused) left -= step;
+        if (left <= 0) resolve(); else setTimeout(tick, step);
+      };
+      setTimeout(tick, step);
+    });
+  }
+  async function typeText(set, text, speed = 45) {
+    if (reduce) { set(text); return; }
+    for (let i = 1; i <= text.length; i++) { set(text.slice(0, i)); await wait(speed); }
+  }
+  async function press(el) { el.classList.add('pulse'); await wait(700); el.classList.remove('pulse'); }
+  const panel = (i, html) => {
+    const p = $(`sim-${i}`); p.innerHTML = html; p.hidden = false;
+    p.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    return p;
+  };
+  const bar = path => `<div class="gh-bar">github.com/${DEMO}${path}</div>`;
+  const head = (text, n = 8) => esc(text.split('\n').slice(0, n).join('\n') + '\n…');
+
+  async function mockFile(i, file, n) {
+    const p = panel(1, `${bar(`/new/main?filename=${file.path}`)}<div class="gh-body">
+      <div><span style="color:var(--muted)">seu-produto /</span> <b class="mono">${esc(file.path)}</b></div>
+      <pre class="gh-code" id="sim-code"></pre>
+      <span class="gh-btn" id="sim-commit">Commit changes</span></div>`);
+    const code = p.querySelector('#sim-code');
+    const lines = file.content().split('\n').slice(0, n);
+    for (let k = 1; k <= lines.length; k++) { code.textContent = lines.slice(0, k).join('\n') + (k === lines.length ? '\n…' : ''); await wait(reduce ? 0 : 110); }
+    await wait(500);
+    p.querySelector('#sim-commit').classList.add('pressed');
+    await wait(500);
+    p.querySelector('#sim-commit').outerHTML = `<span class="gh-ok">✓ ${esc(file.path)} criado na branch main</span>`;
+    state.files[i] = true; render();
+    await wait(1400);
+  }
+
+  async function play() {
+    const msg = t => { $('sim-msg').textContent = t; };
+    $('sim-again').hidden = true; $('sim-pause').hidden = false;
+    for (let i = 0; i < 5; i++) $(`sim-${i}`).hidden = true;
+    state = { repo: '', branch: 'main', step: 0, files: [false, false] };
+    $('repo').value = ''; render();
+
+    msg('Passo 1: o cliente informa o repositório.');
+    await wait(700);
+    await typeText(t => { $('repo').value = t; state.repo = t; render(); }, DEMO, 55);
+    await wait(900); await press($('next')); go(1);
+
+    msg('Passo 2: cada botão abre o GitHub com o arquivo pronto; o cliente só confirma.');
+    await wait(800); await press($('file-1'));
+    await mockFile(0, FILES[0], 12);
+    await press($('file-2'));
+    await mockFile(1, FILES[1], 10);
+    await press($('next')); go(2);
+
+    msg('Passo 3: a chave de IA fica guardada nos secrets do repositório.');
+    await wait(800); await press($('open-secrets'));
+    const p2 = panel(2, `${bar('/settings/secrets/actions/new')}<div class="gh-body">
+      <div class="gh-field"><span>Name</span><div class="gh-input" id="sim-name"></div></div>
+      <div class="gh-field"><span>Secret</span><div class="gh-input" id="sim-secret"></div></div>
+      <span class="gh-btn" id="sim-add">Add secret</span></div>`);
+    await typeText(t => { p2.querySelector('#sim-name').textContent = t; }, 'SAASAGENTS_API_KEY', 35);
+    await typeText(t => { p2.querySelector('#sim-secret').textContent = t; }, 'sk-ant-••••••••••••••••', 30);
+    await wait(500); p2.querySelector('#sim-add').classList.add('pressed'); await wait(500);
+    p2.querySelector('#sim-add').outerHTML = '<span class="gh-ok">✓ Secret SAASAGENTS_API_KEY salvo</span>';
+    await wait(1600); await press($('next')); go(3);
+
+    msg('Passo 4: um clique em Run workflow testa tudo.');
+    await wait(800); await press($('open-actions'));
+    const p3 = panel(3, `${bar('/actions/workflows/agentes.yml')}<div class="gh-body">
+      <span class="gh-btn" id="sim-run">Run workflow</span>
+      <div class="gh-run" id="sim-job" hidden>
+        <div class="top"><span>Mesa dos Agentes #1 · configurar</span><span class="state run" id="sim-state">em execução</span></div>
+        <ul class="gh-steps"><li id="s1">○ Baixar o repositório</li><li id="s2">○ Preparar o Node.js</li><li id="s3">○ Executar agente</li></ul>
+      </div>
+      <div class="gh-summary" id="sim-sum" hidden>
+        <div>• Label <code>agente</code> criada.</div>
+        <b>Teste de conexão aprovado · Analista</b>
+        <div>Recebi o contexto do projeto Loja Aurora a partir de README.md, STATUS.md e BACKLOG.md.<span class="example">exemplo</span></div>
+        <small style="color:var(--muted)">Anthropic · modelo claude-sonnet-5 · 2.184 tokens de entrada / 48 de saída</small>
+      </div></div>`);
+    await wait(600); p3.querySelector('#sim-run').classList.add('pressed'); await wait(400);
+    p3.querySelector('#sim-run').hidden = true; p3.querySelector('#sim-job').hidden = false;
+    for (const id of ['s1', 's2', 's3']) { await wait(900); const li = p3.querySelector('#' + id); li.textContent = li.textContent.replace('○', '✓'); li.classList.add('ok'); }
+    await wait(500);
+    const st = p3.querySelector('#sim-state'); st.textContent = 'sucesso · 38 s'; st.className = 'state ok';
+    p3.querySelector('#sim-sum').hidden = false;
+    await wait(2600); await press($('next')); go(4);
+
+    msg('Passo 5: a tarefa vira uma Issue e a resposta chega como comentário.');
+    await wait(800); await press($('open-issue'));
+    const pedido = $('pedido').value.trim();
+    const p4 = panel(4, `${bar('/issues/1')}<div class="gh-body">
+      <div class="gh-issue-title">Primeira tarefa da Mesa dos Agentes <span style="color:var(--muted);font-weight:400">#1</span><span class="gh-label">agente</span></div>
+      <div class="gh-comment"><div class="who">você abriu esta Issue</div><div class="txt">Agente: analista<br>${esc(pedido)}</div></div>
+      <div id="sim-wait" style="color:var(--muted);font-size:13px">⏳ github-actions está respondendo…</div>
+      <div class="gh-comment" id="sim-answer" hidden><div class="who">github-actions comentou<span class="example">exemplo</span></div><div class="txt">
+        <h4>Analista · Mesa dos Agentes</h4>
+        <div><b>Implementado:</b> checkout com Pix e cartão (STATUS.md).</div>
+        <div><b>Em validação:</b> frete grátis acima de R$ 199 (tickets/012-frete.md).</div>
+        <div><b>Planejado:</b> programa de pontos (BACKLOG.md).</div>
+        <div><b>Próximos passos</b></div>
+        <ol><li>Concluir os testes do frete grátis antes da campanha.</li><li>Definir a regra de pontos por pedido.</li><li>Atualizar o STATUS.md com a data de lançamento.</li></ol>
+        <small>Anthropic · modelo claude-sonnet-5 · 3.912 tokens de entrada / 286 de saída · contexto: README.md, STATUS.md, BACKLOG.md, tickets/012-frete.md</small>
+      </div></div></div>`);
+    await wait(2400);
+    p4.querySelector('#sim-wait').hidden = true; p4.querySelector('#sim-answer').hidden = false;
+    msg('Pronto. Para continuar a conversa, o cliente comenta /agente na Issue.');
+    $('sim-pause').hidden = true; $('sim-again').hidden = false;
+  }
+
+  function startSim() {
+    if (sim) return;
+    sim = { backup: JSON.parse(JSON.stringify(state)), paused: false };
+    document.body.classList.add('sim');
+    $('simbar').hidden = false; $('sim-start').hidden = true; $('sim-pause').textContent = 'Pausar';
+    document.querySelector('.nav').style.display = 'none';
+    play().catch(() => {});
+  }
+  function stopSim() {
+    if (!sim) return;
+    const backup = sim.backup; sim = null;
+    document.body.classList.remove('sim');
+    $('simbar').hidden = true; $('sim-start').hidden = false;
+    document.querySelector('.nav').style.display = '';
+    for (let i = 0; i < 5; i++) $(`sim-${i}`).hidden = true;
+    document.querySelectorAll('.pulse').forEach(el => el.classList.remove('pulse'));
+    state = backup; $('repo').value = state.repo; render();
+  }
+  $('sim-start').addEventListener('click', startSim);
+  $('sim-exit').addEventListener('click', stopSim);
+  $('sim-pause').addEventListener('click', () => { if (!sim) return; sim.paused = !sim.paused; $('sim-pause').textContent = sim.paused ? 'Continuar' : 'Pausar'; });
+  $('sim-again').addEventListener('click', () => { const backup = sim.backup; sim = { backup, paused: false }; $('sim-pause').textContent = 'Pausar'; play().catch(() => {}); });
+  // Na simulação, nenhum link abre o GitHub.
+  document.addEventListener('click', e => { if (sim && e.target.closest('.card a')) e.preventDefault(); }, true);
+  if (location.hash === '#simulacao') startSim();
 })();
 </script>

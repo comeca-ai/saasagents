@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/worker.js && node --check public/app.js && node --check scripts/provision.mjs && node --check connector/cli.mjs && node --check .saasagents/run.mjs && node --check scripts/build-interface.mjs",
+    "check": "node --check src/worker.js && node --check public/app.js && node --check scripts/provision.mjs && node --check connector/cli.mjs && node --check .saasagents/run.mjs && node --check scripts/build-interface.mjs && node --check scripts/serve-interface.mjs",
     "deploy": "wrangler deploy",
     "db:local": "wrangler d1 migrations apply saasagents-v0 --local",
     "connector": "node connector/cli.mjs",
-    "interface": "node scripts/build-interface.mjs"
+    "interface": "node scripts/build-interface.mjs",
+    "interface:serve": "node scripts/serve-interface.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0",

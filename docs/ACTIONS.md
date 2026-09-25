@@ -20,7 +20,7 @@ O GitHub Models, usado na primeira versão, foi desativado pelo GitHub em 30/07/
 
 ## Instalação no cliente
 
-A página `interface/` guia o cliente em cinco passos, um por tela: repositório, os dois arquivos, a chave de IA, o teste de conexão e a primeira tarefa. Ela é publicada pelo workflow `interface.yml` no GitHub Pages (Settings → Pages → Source: GitHub Actions). Para gerar localmente: `npm run interface` e abra `interface/dist/index.html`.
+A página `interface/` guia o cliente em cinco passos, um por tela: repositório, os dois arquivos, a chave de IA, o teste de conexão e a primeira tarefa. Ela é publicada pelo workflow `interface.yml` no GitHub Pages (Settings → Pages → Source: GitHub Actions). Para gerar localmente: `npm run interface` e abra `interface/dist/index.html`. No Codespace, `npm run interface:serve` serve a página na porta 4173 (com o botão Ver simulação).
 
 Arquivos que o cliente recebe:
 
