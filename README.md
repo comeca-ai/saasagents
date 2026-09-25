@@ -20,6 +20,10 @@ Depois execute `saasagents init`. Não há pacote público no npm nem cobrança/
 Guia completo, configuração manual dos Actions e teste único no outro servidor:
 [Instalação do cliente](docs/INSTALACAO-CLIENTE.md).
 
+## Versão GitHub Actions (sem Cloudflare)
+
+A Mesa dos Agentes também roda inteira no GitHub Actions do cliente: Issue com a label `agente` → workflow `agentes.yml` → modelo de IA com a chave do próprio cliente (secret `SAASAGENTS_API_KEY`) → comentário na Issue. Sem Worker e sem D1. A instalação é guiada pela página `interface/`; detalhes em [docs/ACTIONS.md](docs/ACTIONS.md).
+
 ## v0
 
 Publicado: https://saasagents-v0.jhonata-emerick.workers.dev

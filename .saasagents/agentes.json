@@ -1,0 +1,27 @@
+{
+  "provedor": "",
+  "modelo": "",
+  "base_url": "",
+  "max_tokens": 1500,
+  "contexto": {
+    "arquivos": ["README.md", "BACKLOG.md", "STATUS.md", "package.json"],
+    "pasta_tickets": "tickets",
+    "max_tickets": 8,
+    "max_por_arquivo": 4000,
+    "max_total": 18000
+  },
+  "agentes": [
+    {
+      "id": "analista",
+      "nome": "Analista",
+      "papel": "Analista de produto",
+      "instrucoes": "Analise o pedido com base nos documentos do repositório e proponha próximos passos objetivos."
+    },
+    {
+      "id": "revisor",
+      "nome": "Revisor",
+      "papel": "Revisor técnico",
+      "instrucoes": "Aponte riscos, lacunas de teste e dependências antes de qualquer entrega."
+    }
+  ]
+}
