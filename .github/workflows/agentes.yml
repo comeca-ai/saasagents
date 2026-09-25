@@ -31,7 +31,7 @@ on:
         required: false
         default: ''
   push:                                    # interno
-    branches: [feat/actions-only]          # interno
+    branches: [v2]          # interno
     paths: ['.saasagents/**', '.github/workflows/agentes.yml']  # interno
 
 permissions:

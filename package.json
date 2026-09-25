@@ -1,20 +1,17 @@
 {
   "name": "saasagents",
-  "version": "0.1.0",
+  "version": "2.0.0",
+  "description": "Mesa dos Agentes: agentes de IA que rodam no GitHub Actions do cliente.",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "node scripts/dev.mjs",
-    "test": "node --test tests/*.test.js",
-    "check": "node --check src/worker.js && node --check public/app.js && node --check scripts/provision.mjs && node --check connector/cli.mjs && node --check .saasagents/run.mjs && node --check scripts/build-interface.mjs && node --check scripts/serve-interface.mjs",
-    "deploy": "wrangler deploy",
-    "db:local": "wrangler d1 migrations apply saasagents-v0 --local",
-    "connector": "node connector/cli.mjs",
-    "interface": "node scripts/build-interface.mjs",
-    "interface:serve": "node scripts/serve-interface.mjs"
+  "engines": {
+    "node": ">=22"
   },
-  "devDependencies": {
-    "wrangler": "^4.0.0",
-    "@playwright/test": "^1.56.0"
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node --check .saasagents/run.mjs && node --check scripts/build-interface.mjs && node --check scripts/serve-interface.mjs",
+    "interface": "node scripts/build-interface.mjs",
+    "interface:serve": "node scripts/serve-interface.mjs",
+    "legado:test": "cd legado/v0-cloudflare && node --test tests/*.test.js"
   }
 }
