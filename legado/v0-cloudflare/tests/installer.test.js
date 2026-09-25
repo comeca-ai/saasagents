@@ -125,7 +125,8 @@ test('CLI faz um único envio, reutiliza token e falha sem repetições quando r
     assert.ok(!failed.output.includes(token));
   } finally { await new Promise(yes => server.close(yes)); await rm(root, { recursive: true, force: true }); }
 });
-test('wizard cria repo privado, salva secrets por stdin e dispara somente workflow do cliente', async () => {
+// Arquivado na v2: o wizard monta o template a partir da raiz da v0 (package.json, .github/workflows), que nao existe em legado/.
+test.skip('wizard cria repo privado, salva secrets por stdin e dispara somente workflow do cliente', async () => {
   const calls = [];
   const values = { repo: 'cliente/mesa-teste', name: 'mesa-teste', account: env.CLOUDFLARE_ACCOUNT_ID };
   const run = (file, args, options = {}) => { calls.push({ file, args, options }); return args[0] === 'api' && args[1] === 'user' ? 'cliente\n' : ''; };
