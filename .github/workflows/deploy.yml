@@ -20,6 +20,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
+    if: github.repository == 'comeca-ai/saasagents'
     runs-on: ubuntu-latest
     environment: agents
     env:
