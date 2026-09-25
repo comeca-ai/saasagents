@@ -1,0 +1,66 @@
+name: Mesa dos Agentes
+
+# Tudo roda no GitHub Actions deste repositório: sem servidor e sem chave de API.
+# Tarefa = Issue com a label "agente" · acompanhamento = comentário "/agente ..." · teste = disparo manual.
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: 'configurar = cria a label "agente" e testa o modelo; tarefa = roda o pedido abaixo'
+        type: choice
+        options: [configurar, tarefa]
+        default: configurar
+      titulo:
+        description: 'Título da tarefa (opcional)'
+        required: false
+        default: ''
+      pedido:
+        description: 'Pedido para o agente (vazio = teste de conexão)'
+        required: false
+        default: ''
+      agente:
+        description: 'id do agente em .saasagents/agentes.json (vazio = o primeiro)'
+        required: false
+        default: ''
+      modelo:
+        description: 'Modelo do GitHub Models (vazio = o padrão do arquivo)'
+        required: false
+        default: ''
+  push:                                    # interno
+    branches: [feat/actions-only]          # interno
+    paths: ['.saasagents/**', '.github/workflows/agentes.yml']  # interno
+
+permissions:
+  contents: read
+  issues: write
+  models: read
+
+concurrency:
+  group: mesa-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  agente:
+    if: >-
+      github.event_name == 'workflow_dispatch' || github.event_name == 'push' ||
+      (github.event_name == 'issues' && github.event.label.name == 'agente') ||
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/agente') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Executar agente
+        run: node .saasagents/run.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SAASAGENTS_MODEL: ${{ vars.SAASAGENTS_MODEL }}

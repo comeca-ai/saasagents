@@ -3,6 +3,10 @@
 Painel privado para entender projetos, acompanhar agentes e transformar contexto em decisões.
 Repositório exclusivo: https://github.com/comeca-ai/saasagents. Pasta desta instalação: `/root/saasagents`.
 
+## Versão GitHub Actions (sem Cloudflare)
+
+A Mesa dos Agentes também roda inteira no GitHub Actions do cliente: Issue com a label `agente` → workflow `agentes.yml` → GitHub Models com o `GITHUB_TOKEN` do job → comentário na Issue. Sem Worker, sem D1 e sem secrets. A instalação é guiada pela página `interface/`; detalhes em [docs/ACTIONS.md](docs/ACTIONS.md).
+
 ## v0
 
 Publicado: https://saasagents-v0.jhonata-emerick.workers.dev

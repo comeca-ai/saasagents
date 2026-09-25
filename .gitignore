@@ -27,3 +27,4 @@ wrangler.deploy.json
 .browsers/
 .config/
 wrangler.local.json
+interface/dist/
