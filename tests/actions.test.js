@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  resolveTask, pickAgent, buildContext, loadConfig, classifyError, callModel, main, DEFAULT_CONFIG, MODELS_URL,
+  resolveTask, pickAgent, buildContext, loadConfig, classifyError, callModel, main, resolveProvider, DEFAULT_CONFIG,
 } from '../.saasagents/run.mjs';
 
 async function fixture(files = {}) {
@@ -27,7 +27,9 @@ function fakeFetch(routes) {
   return { impl, calls };
 }
 
-const ok = answer => ({ status: 200, body: { model: 'openai/gpt-4.1-mini', choices: [{ message: { content: answer } }], usage: { prompt_tokens: 120, completion_tokens: 30 } } });
+const okAnthropic = answer => ({ status: 200, body: { model: 'claude-sonnet-5', content: [{ type: 'text', text: answer }], usage: { input_tokens: 120, output_tokens: 30 } } });
+const okOpenAI = answer => ({ status: 200, body: { model: 'gpt-6-luna', choices: [{ message: { content: answer } }], usage: { prompt_tokens: 80, completion_tokens: 20 } } });
+const MSGS = [{ role: 'system', content: 'regras' }, { role: 'user', content: 'oi' }];
 
 test('issue só vira tarefa quando recebe a label "agente"', () => {
   const issue = { number: 7, title: 'Exportar CSV', body: 'Agente: revisor\nQuero exportar.', labels: [{ name: 'agente' }] };
@@ -96,20 +98,52 @@ test('loadConfig usa o padrão sem arquivo e acusa JSON inválido', async () => 
   assert.equal(cfg.contexto.max_tickets, 8);
 });
 
-test('callModel envia o formato do GitHub Models e classifica falhas', async () => {
-  const { impl, calls } = fakeFetch([{ match: 'models.github.ai', reply: () => ok('pronto') }]);
-  const result = await callModel({ fetchImpl: impl, token: 't', model: 'openai/gpt-4.1-mini', messages: [{ role: 'user', content: 'oi' }] });
-  assert.equal(result.answer, 'pronto');
-  assert.equal(calls[0].url, MODELS_URL);
-  assert.equal(calls[0].headers.Authorization, 'Bearer t');
-  assert.equal(calls[0].body.model, 'openai/gpt-4.1-mini');
-  const failing = fakeFetch([{ match: 'models', reply: () => ({ status: 429, body: { error: { code: 'RateLimitReached', message: 'Rate limit of 15 per 60s exceeded' } } }) }]);
-  const error = await callModel({ fetchImpl: failing.impl, token: 't', model: 'm', messages: [] }).catch(e => e);
-  assert.equal(error.status, 429);
+test('resolveProvider aplica variável > arquivo > padrão e recusa provedor desconhecido', () => {
+  assert.deepEqual(resolveProvider({ provedor: 'anthropic', modelo: '' }, {}), { provedor: 'anthropic', modelo: 'claude-sonnet-5', baseUrl: 'https://api.anthropic.com/v1' });
+  const viaVars = resolveProvider({ provedor: 'anthropic', modelo: 'x' }, { SAASAGENTS_PROVIDER: 'OpenAI', SAASAGENTS_BASE_URL: 'https://openrouter.ai/api/v1/' });
+  assert.deepEqual(viaVars, { provedor: 'openai', modelo: 'x', baseUrl: 'https://openrouter.ai/api/v1' });
+  assert.equal(resolveProvider({ modelo: 'a' }, { SAASAGENTS_MODEL: 'b' }, { modelo: 'c' }).modelo, 'c');
+  assert.throws(() => resolveProvider({ provedor: 'github-models' }, {}), /desconhecido/);
+});
+
+test('callModel fala o formato da Anthropic', async () => {
+  const { impl, calls } = fakeFetch([{ match: 'api.anthropic.com', reply: () => okAnthropic('pronto') }]);
+  const result = await callModel({ fetchImpl: impl, provedor: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', apiKey: 'k1', model: 'claude-sonnet-5', messages: MSGS, maxTokens: 900 });
+  assert.deepEqual([result.answer, result.usage.prompt_tokens, result.usage.completion_tokens], ['pronto', 120, 30]);
+  assert.equal(calls[0].url, 'https://api.anthropic.com/v1/messages');
+  assert.equal(calls[0].headers['x-api-key'], 'k1');
+  assert.equal(calls[0].headers['anthropic-version'], '2023-06-01');
+  assert.deepEqual([calls[0].body.system, calls[0].body.max_tokens, calls[0].body.messages.length], ['regras', 900, 1]);
+  assert.equal(calls[0].body.tools, undefined);
+});
+
+test('callModel fala o formato OpenAI e compatíveis', async () => {
+  const { impl, calls } = fakeFetch([{ match: '/chat/completions', reply: () => okOpenAI('feito') }]);
+  const official = await callModel({ fetchImpl: impl, provedor: 'openai', baseUrl: 'https://api.openai.com/v1', apiKey: 'k2', model: 'gpt-6-luna', messages: MSGS, maxTokens: 700 });
+  assert.equal(official.answer, 'feito');
+  assert.equal(calls[0].headers.Authorization, 'Bearer k2');
+  assert.deepEqual([calls[0].body.messages[0].role, calls[0].body.max_completion_tokens, calls[0].body.max_tokens], ['system', 700, undefined]);
+  await callModel({ fetchImpl: impl, provedor: 'openai', baseUrl: 'https://openrouter.ai/api/v1', apiKey: 'k3', model: 'm', messages: MSGS, maxTokens: 500 });
+  assert.equal(calls[1].url, 'https://openrouter.ai/api/v1/chat/completions');
+  assert.deepEqual([calls[1].body.max_tokens, calls[1].body.max_completion_tokens], [500, undefined]);
+});
+
+test('falhas do provedor viram mensagens acionáveis', async () => {
+  const failing = fakeFetch([{ match: 'anthropic', reply: () => ({ status: 429, body: { type: 'error', error: { type: 'rate_limit_error', message: 'Number of requests has exceeded your rate limit' } } }) }]);
+  const error = await callModel({ fetchImpl: failing.impl, provedor: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', apiKey: 'k', model: 'm', messages: MSGS }).catch(e => e);
+  assert.deepEqual([error.status, error.code], [429, 'rate_limit_error']);
   assert.match(classifyError(error, 'm'), /limite de uso/);
-  assert.match(classifyError({ status: 403 }, 'm'), /models: read/);
+  assert.match(classifyError({ status: 401, message: 'invalid x-api-key' }, 'm'), /foi recusada/);
+  assert.match(classifyError({ status: 400, message: 'Your credit balance is too low' }, 'm'), /sem créditos/);
+  assert.match(classifyError({ status: 429, code: 'insufficient_quota' }, 'm'), /sem créditos/);
   assert.match(classifyError({ status: 404 }, 'z/z'), /z\/z/);
-  assert.match(classifyError({ status: 413 }, 'm'), /contexto ultrapassou/);
+  assert.match(classifyError({ status: 529, message: 'Overloaded' }, 'm'), /instável/);
+  assert.match(classifyError({ kind: 'missing_key' }, 'm'), /SAASAGENTS_API_KEY/);
+  const html = fakeFetch([{ match: 'x', reply: () => ({ status: 200, body: 'OK' }) }]);
+  const empty = await callModel({ fetchImpl: html.impl, provedor: 'openai', baseUrl: 'https://x.dev/v1', apiKey: 'k', model: 'm', messages: MSGS }).catch(e => e);
+  assert.equal(empty.kind, 'empty');
+  const offline = await callModel({ fetchImpl: async () => { throw new Error('ECONNREFUSED'); }, provedor: 'openai', baseUrl: 'https://x.dev/v1', apiKey: 'k', model: 'm', messages: MSGS }).catch(e => e);
+  assert.equal(offline.kind, 'network');
 });
 
 test('main: Issue rotulada gera comentário com resposta e rodapé', async () => {
@@ -118,11 +152,11 @@ test('main: Issue rotulada gera comentário com resposta e rodapé', async () =>
   const summaryPath = join(root, 'summary.md');
   await writeFile(eventPath, JSON.stringify({ action: 'labeled', label: { name: 'agente' }, issue: { number: 12, title: 'Revisar', body: 'Agente: revisor', labels: [] } }));
   const { impl, calls } = fakeFetch([
-    { match: 'models.github.ai', reply: () => ok('Resposta do revisor') },
+    { match: 'api.anthropic.com', reply: () => okAnthropic('Resposta do revisor') },
     { match: '/issues/12/comments', reply: () => ({ status: 201, body: { id: 1 } }) },
   ]);
   const result = await main({
-    env: { GITHUB_TOKEN: 'segredo123', GITHUB_REPOSITORY: 'cliente/app', GITHUB_EVENT_NAME: 'issues', GITHUB_EVENT_PATH: eventPath, GITHUB_WORKSPACE: root, GITHUB_STEP_SUMMARY: summaryPath, GITHUB_RUN_ID: '99' },
+    env: { GITHUB_TOKEN: 'segredo123', SAASAGENTS_API_KEY: 'chave-do-cliente', GITHUB_REPOSITORY: 'cliente/app', GITHUB_EVENT_NAME: 'issues', GITHUB_EVENT_PATH: eventPath, GITHUB_WORKSPACE: root, GITHUB_STEP_SUMMARY: summaryPath, GITHUB_RUN_ID: '99' },
     fetchImpl: impl, log: () => {},
   });
   assert.equal(result.status, 'done');
@@ -130,7 +164,8 @@ test('main: Issue rotulada gera comentário com resposta e rodapé', async () =>
   const comment = calls.find(c => c.url.endsWith('/repos/cliente/app/issues/12/comments'));
   assert.match(comment.body.body, /### Revisor · Mesa dos Agentes[\s\S]*Resposta do revisor[\s\S]*120 tokens de entrada[\s\S]*README.md[\s\S]*actions\/runs\/99/);
   assert.match(await readFile(summaryPath, 'utf8'), /Resposta do revisor/);
-  assert.match(calls[0].body.messages[0].content, /Você é Revisor/);
+  assert.match(calls[0].body.system, /Você é Revisor/);
+  assert.match(comment.body.body, /Anthropic · modelo `claude-sonnet-5`/);
 });
 
 test('main: configurar cria a label e falha do modelo vira mensagem clara sem vazar token', async () => {
@@ -139,17 +174,28 @@ test('main: configurar cria a label e falha do modelo vira mensagem clara sem va
   await writeFile(eventPath, JSON.stringify({ inputs: { acao: 'configurar' } }));
   const { impl, calls } = fakeFetch([
     { match: '/labels', reply: () => ({ status: 422, body: { message: 'already_exists' } }) },
-    { match: 'models.github.ai', reply: () => ({ status: 403, body: { error: { code: 'no_access', message: 'denied for token segredo123' } } }) },
+    { match: 'api.anthropic.com', reply: () => ({ status: 401, body: { type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key chave-ruim segredo123' } } }) },
   ]);
   const logs = [];
   const result = await main({
-    env: { GITHUB_TOKEN: 'segredo123', GITHUB_REPOSITORY: 'cliente/app', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_EVENT_PATH: eventPath, GITHUB_WORKSPACE: root },
+    env: { GITHUB_TOKEN: 'segredo123', SAASAGENTS_API_KEY: 'chave-ruim', GITHUB_REPOSITORY: 'cliente/app', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_EVENT_PATH: eventPath, GITHUB_WORKSPACE: root },
     fetchImpl: impl, log: m => logs.push(m),
   });
   assert.equal(result.status, 'failed');
-  assert.match(result.reason, /models: read/);
+  assert.match(result.reason, /foi recusada/);
   assert.equal(calls[0].body.name, 'agente');
-  assert.ok(logs.every(m => !m.includes('segredo123')));
+  assert.ok(logs.every(m => !m.includes('segredo123') && !m.includes('chave-ruim')));
+});
+
+test('main: sem o secret, avisa como criar e não chama o provedor', async () => {
+  const root = await fixture({ 'README.md': '# Aurora' });
+  const eventPath = join(root, 'event.json');
+  await writeFile(eventPath, JSON.stringify({ action: 'labeled', label: { name: 'agente' }, issue: { number: 5, title: 'T', body: '', labels: [] } }));
+  const { impl, calls } = fakeFetch([{ match: '/issues/5/comments', reply: () => ({ status: 201, body: {} }) }]);
+  const result = await main({ env: { GITHUB_TOKEN: 't', GITHUB_REPOSITORY: 'cliente/app', GITHUB_EVENT_NAME: 'issues', GITHUB_EVENT_PATH: eventPath, GITHUB_WORKSPACE: root }, fetchImpl: impl, log: () => {} });
+  assert.equal(result.status, 'failed');
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].body.body, /SAASAGENTS_API_KEY[\s\S]*settings\/secrets\/actions\/new/);
 });
 
 test('main ignora eventos que não são tarefa', async () => {

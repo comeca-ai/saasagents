@@ -119,13 +119,13 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
   <header class="top">
     <span class="eyebrow">Mesa dos Agentes · instalação</span>
     <h1>Conecte a Mesa dos Agentes ao seu GitHub</h1>
-    <p class="lede">Tudo roda no GitHub Actions do seu repositório. Não há servidor para contratar nem chave de API para guardar: o modelo é o GitHub Models, com a permissão do próprio job.</p>
+    <p class="lede">Tudo roda no GitHub Actions do seu repositório, sem servidor para contratar. O modelo de IA usa a sua própria chave, guardada nos secrets do repositório: ela nunca passa por esta página nem por nós.</p>
     <div class="flow" aria-label="Como funciona">
       <div class="node"><b>Issue com a label <code>agente</code></b><span>é o pedido da tarefa</span></div>
       <span class="arrow" aria-hidden="true">→</span>
       <div class="node"><b>GitHub Actions</b><span>lê README, STATUS, backlog e tickets</span></div>
       <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>GitHub Models</b><span>gera a resposta do agente</span></div>
+      <div class="node"><b>Modelo de IA com a sua chave</b><span>Anthropic, OpenAI ou compatível</span></div>
       <span class="arrow" aria-hidden="true">→</span>
       <div class="node"><b>Comentário na Issue</b><span>com modelo, tokens e link da execução</span></div>
     </div>
@@ -134,7 +134,7 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
   <div class="layout">
     <nav class="rail" aria-label="Etapas">
       <div class="meter" aria-hidden="true"><i id="meter"></i></div>
-      <span class="muted" id="progress-label" style="font-size:13px">0 de 5 etapas</span>
+      <span class="muted" id="progress-label" style="font-size:13px">0 de 6 etapas</span>
       <ol id="rail"></ol>
     </nav>
 
@@ -171,19 +171,24 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
         <p class="why">Cada agente tem um papel e instruções. Na Issue, a linha <code>Agente: id</code> escolhe quem responde; sem ela, responde o primeiro da lista.</p>
         <div class="row">
           <div class="field">
-            <label for="modelo">Modelo do GitHub Models</label>
-            <select id="modelo">
-              <option value="openai/gpt-4.1-mini">openai/gpt-4.1-mini · padrão, maior cota diária</option>
-              <option value="openai/gpt-4.1">openai/gpt-4.1 · respostas mais elaboradas</option>
-              <option value="meta/Llama-3.3-70B-Instruct">meta/Llama-3.3-70B-Instruct · o mesmo da versão Cloudflare</option>
-              <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
-              <option value="__outro">Outro (digite o id)</option>
+            <label for="provedor">Provedor do modelo</label>
+            <select id="provedor">
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI</option>
+              <option value="compativel">Outro compatível com a API da OpenAI</option>
             </select>
-            <small>Os limites gratuitos variam por modelo. Planos pagos do GitHub ampliam a cota.</small>
+            <small>A cobrança de cada tarefa vai para a conta do cliente neste provedor.</small>
           </div>
-          <div class="field" id="modelo-outro-box" hidden>
-            <label for="modelo-outro">Id do modelo</label>
-            <input type="text" id="modelo-outro" class="mono" placeholder="fornecedor/modelo" spellcheck="false">
+          <div class="field">
+            <label for="modelo">Modelo</label>
+            <input type="text" id="modelo" class="mono" list="modelos-sugeridos" spellcheck="false" autocomplete="off">
+            <datalist id="modelos-sugeridos"></datalist>
+            <small id="modelo-dica"></small>
+          </div>
+          <div class="field" id="base-url-box" hidden>
+            <label for="base-url">Endereço da API</label>
+            <input type="text" id="base-url" class="mono" placeholder="https://openrouter.ai/api/v1" spellcheck="false" autocomplete="off">
+            <small>A parte antes de <code>/chat/completions</code>.</small>
           </div>
           <div class="field">
             <label for="arquivos">Arquivos de contexto</label>
@@ -213,9 +218,28 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
         <div class="note info"><b>Arquivo grande demais para o link?</b><span>Quando o conteúdo não cabe no endereço, o botão copia o texto antes de abrir o GitHub. Cole no editor e faça o commit.</span></div>
       </section>
 
+      <section class="step" id="chave" data-step="chave">
+        <div class="step-head">
+          <div class="t"><span class="dot">4</span><h2>Salvar a chave do modelo</h2></div>
+          <span class="chip idle" data-status="chave">pendente</span>
+        </div>
+        <p class="why">Gere uma chave no painel do provedor e salve como secret do repositório. O workflow lê o secret na hora de rodar; ninguém mais vê o valor.</p>
+        <ol class="how">
+          <li>No painel do provedor, crie uma chave de API. <a id="provider-keys" target="_blank" rel="noopener">Abrir o painel de chaves</a></li>
+          <li>Abra os secrets do repositório e clique em <b>New repository secret</b>.</li>
+          <li>Em <b>Name</b>, use exatamente <code id="secret-name">SAASAGENTS_API_KEY</code>. Em <b>Secret</b>, cole a chave e salve.</li>
+        </ol>
+        <div class="actions">
+          <a class="btn primary" id="open-secrets" target="_blank" rel="noopener">Abrir os secrets do repositório</a>
+          <button class="btn" type="button" id="copy-secret-name">Copiar o nome</button>
+          <label class="check"><input type="checkbox" data-done="chave"> Secret salvo</label>
+        </div>
+        <div class="note info"><b>A chave não passa por aqui.</b><span>Esta página não pede nem guarda a chave. Ela fica criptografada nos secrets do GitHub e só é entregue ao job do Actions.</span></div>
+      </section>
+
       <section class="step" id="ativar" data-step="ativar">
         <div class="step-head">
-          <div class="t"><span class="dot">4</span><h2>Ativar e testar</h2></div>
+          <div class="t"><span class="dot">5</span><h2>Ativar e testar</h2></div>
           <span class="chip idle" data-status="ativar">pendente</span>
         </div>
         <ol class="how">
@@ -223,7 +247,7 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
           <li>Clique em <b>Run workflow</b> e mantenha a ação <code>configurar</code>.</li>
           <li>A execução cria a label <code>agente</code> e faz um teste de conexão com o modelo. O resultado aparece no resumo da execução.</li>
         </ol>
-        <div class="note warn"><b>Repositório de organização?</b><span>O uso do GitHub Models precisa estar liberado pela organização. Se o teste falhar com a mensagem sobre <code>models: read</code>, peça a um administrador para liberar os modelos nas configurações da organização.</span></div>
+        <div class="note warn"><b>Se o teste falhar</b><span>O resumo da execução diz o motivo e o que fazer: secret ausente, chave recusada, conta sem créditos ou modelo que não existe no provedor.</span></div>
         <div class="actions">
           <a class="btn primary" id="open-actions" target="_blank" rel="noopener">Abrir o workflow no Actions</a>
           <label class="check"><input type="checkbox" data-done="ativar"> Teste de conexão aprovado</label>
@@ -232,7 +256,7 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
 
       <section class="step" id="tarefa" data-step="tarefa">
         <div class="step-head">
-          <div class="t"><span class="dot">5</span><h2>Primeira tarefa</h2></div>
+          <div class="t"><span class="dot">6</span><h2>Primeira tarefa</h2></div>
           <span class="chip idle" data-status="tarefa">pendente</span>
         </div>
         <p class="why">A tarefa vira uma Issue com a label <code>agente</code>. A resposta chega como comentário em cerca de um minuto.</p>
@@ -266,7 +290,7 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
         </details>
       </section>
 
-      <p class="foot">Custos: o GitHub Models tem uma cota gratuita por conta e por modelo; acima dela, a cobrança segue o plano do GitHub do cliente. Os minutos do Actions seguem a cota do repositório. Nada disso é estimado por esta página.</p>
+      <p class="foot">Custos: cada tarefa é cobrada pelo provedor do modelo na conta do cliente, conforme os tokens usados. O comentário de cada resposta mostra os tokens de entrada e de saída. Os minutos do Actions seguem a cota do repositório. Esta página não estima valores.</p>
     </main>
   </div>
 </div>
@@ -279,6 +303,7 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
     { id: 'repositorio', label: 'Repositório', anchor: 'repositorio' },
     { id: 'agentes', label: 'Agentes e modelo', anchor: 'agentes' },
     { id: 'arquivos', label: 'Instalar arquivos', anchor: 'arquivos-step' },
+    { id: 'chave', label: 'Salvar a chave', anchor: 'chave' },
     { id: 'ativar', label: 'Ativar e testar', anchor: 'ativar' },
     { id: 'tarefa', label: 'Primeira tarefa', anchor: 'tarefa' },
   ];
@@ -286,17 +311,17 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
   let base = { workflow: '', runner: '', config: null };
   try { base = JSON.parse($('arquivos-base').textContent); } catch (e) { /* página sem arquivos embutidos */ }
   const defaults = base.config || {
-    modelo: 'openai/gpt-4.1-mini', max_tokens: 1500,
+    provedor: 'anthropic', modelo: 'claude-sonnet-5', base_url: '', max_tokens: 1500,
     contexto: { arquivos: ['README.md', 'BACKLOG.md', 'STATUS.md', 'package.json'], pasta_tickets: 'tickets', max_tickets: 8, max_por_arquivo: 4000, max_total: 18000 },
     agentes: [{ id: 'analista', nome: 'Analista', papel: 'Analista de produto', instrucoes: 'Analise o pedido com base nos documentos do repositório e proponha próximos passos objetivos.' }],
   };
 
-  const KEY = 'mesa-agentes-instalacao-v1';
+  const KEY = 'mesa-agentes-instalacao-v2';
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* armazenamento indisponível */ } };
   const stored = load();
   const state = Object.assign({
-    repo: '', branch: 'main', modelo: defaults.modelo, modeloOutro: '',
+    repo: '', branch: 'main', provedor: defaults.base_url ? 'compativel' : (defaults.provedor || 'anthropic'), modelo: defaults.modelo, baseUrl: defaults.base_url || '',
     arquivos: defaults.contexto.arquivos.join(', '), pasta: defaults.contexto.pasta_tickets || '',
     agentes: JSON.parse(JSON.stringify(defaults.agentes)), done: {}, files: {},
   }, stored || {});
@@ -311,14 +336,21 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
   const repo = () => parseRepo(state.repo);
   const gh = path => `https://github.com/${repo()}${path}`;
   const slug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
-  const modelo = () => state.modelo === '__outro' ? (state.modeloOutro.trim() || defaults.modelo) : state.modelo;
+  const PROVIDERS = {
+    anthropic: { modelo: 'claude-sonnet-5', sugestoes: ['claude-sonnet-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'], dica: 'Sonnet 5 equilibra qualidade e custo; Haiku 4.5 é o mais barato.', chaves: 'https://console.anthropic.com/settings/keys' },
+    openai: { modelo: 'gpt-6-luna', sugestoes: ['gpt-6-luna', 'gpt-6-sol'], dica: 'Luna é o mais econômico; Sol responde com mais profundidade.', chaves: 'https://platform.openai.com/api-keys' },
+    compativel: { modelo: '', sugestoes: [], dica: 'Use o id do modelo exatamente como o provedor publica.', chaves: '' },
+  };
+  const modelo = () => state.modelo.trim() || PROVIDERS[state.provedor].modelo;
 
   function configJson() {
     const agentes = state.agentes
       .map(a => ({ id: slug(a.id || a.nome), nome: a.nome.trim() || a.id, papel: a.papel.trim(), instrucoes: a.instrucoes.trim() }))
       .filter(a => a.id);
     return JSON.stringify({
+      provedor: state.provedor === 'anthropic' ? 'anthropic' : 'openai',
       modelo: modelo(),
+      base_url: state.provedor === 'compativel' ? state.baseUrl.trim() : '',
       max_tokens: defaults.max_tokens || 1500,
       contexto: {
         ...defaults.contexto,
@@ -455,7 +487,15 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
     if (opts.includes(prev)) sel.value = prev;
     const issue = $('open-issue');
     if (repoOk) { issue.href = issueUrl(); issue.removeAttribute('aria-disabled'); } else { issue.removeAttribute('href'); issue.setAttribute('aria-disabled', 'true'); }
-    $('modelo-outro-box').hidden = state.modelo !== '__outro';
+    const prov = PROVIDERS[state.provedor] || PROVIDERS.anthropic;
+    $('base-url-box').hidden = state.provedor !== 'compativel';
+    $('modelo-dica').textContent = prov.dica;
+    $('modelos-sugeridos').innerHTML = prov.sugestoes.map(m => `<option value="${m}"></option>`).join('');
+    $('modelo').placeholder = prov.modelo || 'id do modelo';
+    const keys = $('provider-keys');
+    if (prov.chaves) { keys.href = prov.chaves; keys.hidden = false; } else { keys.removeAttribute('href'); keys.hidden = true; }
+    const secrets = $('open-secrets');
+    if (repoOk) { secrets.href = gh('/settings/secrets/actions/new'); secrets.removeAttribute('aria-disabled'); } else { secrets.removeAttribute('href'); secrets.setAttribute('aria-disabled', 'true'); }
     refreshFiles();
     document.querySelectorAll('[data-done]').forEach(box => { box.checked = !!state.done[box.dataset.done]; });
 
@@ -476,13 +516,18 @@ ol.how{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
   }
 
   $('repo').value = state.repo; $('branch').value = state.branch;
-  $('modelo').value = [...$('modelo').options].some(o => o.value === state.modelo) ? state.modelo : '__outro';
-  if ($('modelo').value === '__outro' && state.modelo !== '__outro') { state.modeloOutro = state.modelo; state.modelo = '__outro'; }
-  $('modelo-outro').value = state.modeloOutro; $('arquivos').value = state.arquivos; $('pasta').value = state.pasta;
-  [['repo', 'repo'], ['branch', 'branch'], ['modelo-outro', 'modeloOutro'], ['arquivos', 'arquivos'], ['pasta', 'pasta']].forEach(([id, key]) => {
+  if (!PROVIDERS[state.provedor]) state.provedor = 'anthropic';
+  $('provedor').value = state.provedor; $('modelo').value = state.modelo; $('base-url').value = state.baseUrl;
+  $('arquivos').value = state.arquivos; $('pasta').value = state.pasta;
+  [['repo', 'repo'], ['branch', 'branch'], ['modelo', 'modelo'], ['base-url', 'baseUrl'], ['arquivos', 'arquivos'], ['pasta', 'pasta']].forEach(([id, key]) => {
     $(id).addEventListener('input', () => { state[key] = $(id).value; update(); });
   });
-  $('modelo').addEventListener('change', () => { state.modelo = $('modelo').value; update(); });
+  $('provedor').addEventListener('change', () => {
+    state.provedor = $('provedor').value;
+    state.modelo = PROVIDERS[state.provedor].modelo; $('modelo').value = state.modelo;
+    update();
+  });
+  $('copy-secret-name').addEventListener('click', () => copy('SAASAGENTS_API_KEY', 'Nome do secret'));
   ['t-titulo', 't-pedido', 't-agente'].forEach(id => $(id).addEventListener('input', update));
   document.querySelectorAll('[data-done]').forEach(box => box.addEventListener('change', () => { state.done[box.dataset.done] = box.checked; update(); }));
   $('add-agent').addEventListener('click', () => {

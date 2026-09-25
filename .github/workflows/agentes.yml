@@ -1,6 +1,6 @@
 name: Mesa dos Agentes
 
-# Tudo roda no GitHub Actions deste repositório: sem servidor e sem chave de API.
+# Tudo roda no GitHub Actions deste repositório, sem servidor. A chave do modelo fica no secret SAASAGENTS_API_KEY.
 # Tarefa = Issue com a label "agente" · acompanhamento = comentário "/agente ..." · teste = disparo manual.
 on:
   issues:
@@ -27,7 +27,7 @@ on:
         required: false
         default: ''
       modelo:
-        description: 'Modelo do GitHub Models (vazio = o padrão do arquivo)'
+        description: 'Modelo (vazio = o do arquivo .saasagents/agentes.json)'
         required: false
         default: ''
   push:                                    # interno
@@ -37,7 +37,6 @@ on:
 permissions:
   contents: read
   issues: write
-  models: read
 
 concurrency:
   group: mesa-${{ github.event.issue.number || github.run_id }}
@@ -53,14 +52,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Executar agente
         run: node .saasagents/run.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          SAASAGENTS_API_KEY: ${{ secrets.SAASAGENTS_API_KEY }}
+          SAASAGENTS_PROVIDER: ${{ vars.SAASAGENTS_PROVIDER }}
           SAASAGENTS_MODEL: ${{ vars.SAASAGENTS_MODEL }}
+          SAASAGENTS_BASE_URL: ${{ vars.SAASAGENTS_BASE_URL }}

@@ -1,19 +1,26 @@
 #!/usr/bin/env node
 // Mesa dos Agentes — executor que roda inteiramente no GitHub Actions do cliente.
-// Sem servidor e sem chave de API: a tarefa vem de uma Issue (label "agente"), de um
-// comentário "/agente ..." ou de um disparo manual; o contexto vem do checkout do próprio
-// repositório; o modelo é o GitHub Models, autenticado pelo GITHUB_TOKEN do job.
+// Sem servidor: a tarefa vem de uma Issue (label "agente"), de um comentário "/agente ..."
+// ou de um disparo manual; o contexto vem do checkout do próprio repositório; o modelo é
+// chamado com a chave do cliente, guardada no secret SAASAGENTS_API_KEY do repositório.
+// O agente só produz texto: não há ferramentas, shell nem acesso a arquivos pelo modelo.
 import { readFile, readdir, realpath, appendFile } from 'node:fs/promises';
 import { resolve, sep, join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const DEFAULT_MODEL = 'openai/gpt-4.1-mini';
-export const MODELS_URL = 'https://models.github.ai/inference/chat/completions';
 export const TASK_LABEL = 'agente';
+export const KEY_SECRET = 'SAASAGENTS_API_KEY';
 const TRUSTED = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 
+export const PROVIDERS = {
+  anthropic: { nome: 'Anthropic', base_url: 'https://api.anthropic.com/v1', modelo: 'claude-sonnet-5' },
+  openai: { nome: 'OpenAI ou compatível', base_url: 'https://api.openai.com/v1', modelo: 'gpt-6-luna' },
+};
+
 export const DEFAULT_CONFIG = {
-  modelo: DEFAULT_MODEL,
+  provedor: 'anthropic',
+  modelo: PROVIDERS.anthropic.modelo,
+  base_url: '',
   max_tokens: 1500,
   contexto: {
     arquivos: ['README.md', 'BACKLOG.md', 'STATUS.md', 'package.json'],
@@ -58,6 +65,15 @@ export async function loadConfig(root) {
   const agentes = Array.isArray(parsed.agentes) ? parsed.agentes.filter(a => a && (a.id || a.nome)) : [];
   config.agentes = agentes.length ? agentes : structuredClone(DEFAULT_CONFIG.agentes);
   return config;
+}
+
+// Provedor, modelo e endereço: variável do repositório > arquivo de configuração > padrão.
+export function resolveProvider(config, env = {}, override = {}) {
+  const provedor = String(env.SAASAGENTS_PROVIDER || config.provedor || 'anthropic').toLowerCase();
+  if (!PROVIDERS[provedor]) throw new Error(`Provedor "${provedor}" desconhecido. Use "anthropic" ou "openai" em .saasagents/agentes.json.`);
+  const modelo = override.modelo || env.SAASAGENTS_MODEL || config.modelo || PROVIDERS[provedor].modelo;
+  const baseUrl = String(env.SAASAGENTS_BASE_URL || config.base_url || PROVIDERS[provedor].base_url).replace(/\/+$/, '');
+  return { provedor, modelo, baseUrl };
 }
 
 const BLOCKED = /^\.env|secret|credential|\.pem$|\.key$|id_rsa/i;
@@ -184,44 +200,70 @@ export function buildMessages({ agent, task, context, repo }) {
   return [{ role: 'system', content: system }, { role: 'user', content: user }];
 }
 
-export async function callModel({ fetchImpl = fetch, token, model, messages, maxTokens = 1500, url = MODELS_URL }) {
-  const response = await fetchImpl(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens }),
-  });
+// Monta a requisição no formato de cada provedor. Uma chamada de texto, sem ferramentas.
+export function buildRequest({ provedor, baseUrl, apiKey, model, messages, maxTokens = 1500 }) {
+  const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+  const chat = messages.filter(m => m.role !== 'system');
+  if (provedor === 'anthropic') {
+    return {
+      url: `${baseUrl}/messages`,
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: { model, max_tokens: maxTokens, system, messages: chat },
+    };
+  }
+  const official = /(^|\.)openai\.com$/i.test(new URL(baseUrl).hostname);
+  return {
+    url: `${baseUrl}/chat/completions`,
+    headers: { Authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: { model, messages: [{ role: 'system', content: system }, ...chat], ...(official ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }) },
+  };
+}
+
+export function parseResponse(provedor, data) {
+  if (provedor === 'anthropic') {
+    const answer = (data?.content || []).filter(b => b?.type === 'text').map(b => b.text).join('\n').trim();
+    return { answer, usage: { prompt_tokens: data?.usage?.input_tokens, completion_tokens: data?.usage?.output_tokens }, model: data?.model };
+  }
+  const content = data?.choices?.[0]?.message?.content;
+  const answer = (Array.isArray(content) ? content.map(p => p?.text || '').join('\n') : String(content || '')).trim();
+  return { answer, usage: { prompt_tokens: data?.usage?.prompt_tokens, completion_tokens: data?.usage?.completion_tokens }, model: data?.model };
+}
+
+export async function callModel({ fetchImpl = fetch, provedor, baseUrl, apiKey, model, messages, maxTokens = 1500 }) {
+  const request = buildRequest({ provedor, baseUrl, apiKey, model, messages, maxTokens });
+  let response;
+  try {
+    response = await fetchImpl(request.url, { method: 'POST', headers: request.headers, body: JSON.stringify(request.body) });
+  } catch (cause) {
+    throw Object.assign(new Error(`Falha de rede: ${cause?.message || cause}`), { kind: 'network' });
+  }
   const raw = await response.text();
   let data = null;
   try { data = JSON.parse(raw); } catch { /* resposta não-JSON */ }
   if (!response.ok) {
     const error = new Error(data?.error?.message || data?.message || raw.slice(0, 300) || `HTTP ${response.status}`);
     error.status = response.status;
-    error.code = data?.error?.code || '';
+    error.code = data?.error?.type || data?.error?.code || '';
     throw error;
   }
-  const answer = data?.choices?.[0]?.message?.content;
-  if (typeof answer !== 'string' || !answer.trim()) {
-    const error = new Error('Resposta vazia');
-    error.status = response.status;
-    throw error;
-  }
-  return { answer: answer.trim(), usage: data.usage || {}, model: data.model || model };
+  const parsed = parseResponse(provedor, data);
+  if (!parsed.answer) throw Object.assign(new Error(data ? 'Resposta vazia' : `Resposta não reconhecida: ${raw.slice(0, 120)}`), { status: response.status, kind: 'empty' });
+  return { ...parsed, model: parsed.model || model };
 }
 
 export function classifyError(error, model) {
   const status = Number(error?.status) || 0;
-  const message = String(error?.message || '');
-  if (status === 401) return 'O GitHub recusou o token do job. Rode de novo; se persistir, verifique se o workflow usa `${{ github.token }}`.';
-  if (status === 403) return 'Sem acesso ao GitHub Models. Confira `permissions: models: read` no workflow e se a organização libera o uso de GitHub Models.';
-  if (status === 404 || /unknown model|model.*not found/i.test(message)) return `O modelo \`${model}\` não existe no catálogo do GitHub Models. Ajuste \`modelo\` em .saasagents/agentes.json.`;
-  if (status === 413 || /(context|input|prompt).*(long|length|limit|token)|too large|tokens_limit/i.test(message)) return 'O contexto ultrapassou o limite do modelo. Reduza `contexto.max_total` ou a lista de arquivos em .saasagents/agentes.json.';
-  if (status === 429 || /rate limit|quota/i.test(message)) return 'O limite de uso do GitHub Models foi atingido (por minuto ou por dia). Tente mais tarde ou escolha um modelo de outra faixa.';
-  if (/Resposta vazia/.test(message)) return 'O modelo devolveu uma resposta vazia.';
+  const text = `${error?.code || ''} ${error?.message || ''}`;
+  if (error?.kind === 'missing_key') return `O secret \`${KEY_SECRET}\` não está configurado. Em Settings → Secrets and variables → Actions, crie o secret com a chave do provedor.`;
+  if (error?.kind === 'network') return 'Não foi possível conectar ao provedor do modelo. Confira `base_url` em .saasagents/agentes.json.';
+  if (error?.kind === 'empty') return 'O provedor respondeu, mas sem texto. Confira o provedor e o endereço em .saasagents/agentes.json.';
+  if (/credit|billing|insufficient_quota|balance/i.test(text)) return 'A conta do provedor está sem créditos ou sem forma de pagamento. Regularize no painel do provedor.';
+  if (status === 401 || /authentication|invalid.*(api.?key|x-api-key)/i.test(text)) return `A chave em \`${KEY_SECRET}\` foi recusada pelo provedor. Gere uma nova chave e atualize o secret.`;
+  if (status === 403 || /permission/i.test(text)) return 'A chave não tem permissão para usar este modelo.';
+  if (status === 404 || /model.*(not.?found|does not exist|invalid)|not_found/i.test(text)) return `O modelo \`${model}\` não existe neste provedor. Ajuste \`modelo\` em .saasagents/agentes.json.`;
+  if (status === 413 || /(context|prompt|input).*(long|length|limit|token)|too large/i.test(text)) return 'O contexto ultrapassou o limite do modelo. Reduza `contexto.max_total` em .saasagents/agentes.json.';
+  if (status === 429 || /rate.?limit/i.test(text)) return 'O limite de uso do provedor foi atingido. Tente de novo em alguns minutos.';
+  if (status >= 500) return `O provedor está instável agora (HTTP ${status}). Rode de novo em alguns minutos.`;
   return 'O modelo não concluiu a resposta.';
 }
 
@@ -240,24 +282,29 @@ async function githubApi({ fetchImpl, token, apiUrl, method, path, body }) {
   return { ok: response.ok, status: response.status, text };
 }
 
-function footer({ model, usage, files, runUrl }) {
+function footer({ model, provedor, usage, files, runUrl }) {
   const tokens = [usage.prompt_tokens, usage.completion_tokens].every(Number.isSafeInteger)
     ? ` · ${usage.prompt_tokens} tokens de entrada / ${usage.completion_tokens} de saída`
     : '';
   const ctx = files.length ? ` · contexto: ${files.join(', ')}` : ' · sem documentos de contexto';
   const run = runUrl ? ` · [execução](${runUrl})` : '';
-  return `<sub>Modelo \`${model}\`${tokens}${ctx}${run}</sub>`;
+  return `<sub>${PROVIDERS[provedor]?.nome || provedor} · modelo \`${model}\`${tokens}${ctx}${run}</sub>`;
 }
 
 export async function main({ env = process.env, fetchImpl = fetch, log = console.log } = {}) {
   const token = env.GITHUB_TOKEN;
   if (!token) throw new Error('GITHUB_TOKEN ausente. No workflow, passe `GITHUB_TOKEN: ${{ github.token }}`.');
+  const apiKey = String(env[KEY_SECRET] || '').trim();
   const repo = env.GITHUB_REPOSITORY || '';
   const apiUrl = env.GITHUB_API_URL || 'https://api.github.com';
   const runUrl = env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/actions/runs/${env.GITHUB_RUN_ID}` : '';
   const payload = env.GITHUB_EVENT_PATH ? JSON.parse(await readFile(env.GITHUB_EVENT_PATH, 'utf8')) : {};
   const root = env.GITHUB_WORKSPACE || process.cwd();
-  const clean = value => redact(String(value || '')).replaceAll(token, '[omitido]');
+  const clean = value => {
+    let out = redact(String(value || ''));
+    for (const secret of [token, apiKey]) if (secret && secret.length >= 8) out = out.replaceAll(secret, '[omitido]');
+    return out;
+  };
   const summary = async text => { if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, text + '\n'); };
   const api = (method, path, body) => githubApi({ fetchImpl, token, apiUrl, method, path, body });
 
@@ -277,26 +324,28 @@ export async function main({ env = process.env, fetchImpl = fetch, log = console
   }
 
   const agent = pickAgent(config, task.agente);
-  const model = task.modelo || env.SAASAGENTS_MODEL || config.modelo || DEFAULT_MODEL;
+  const { provedor, modelo, baseUrl } = resolveProvider(config, env, { modelo: task.modelo });
   const context = await buildContext(root, config.contexto);
   const messages = buildMessages({ agent, task, context, repo });
-  log(`Tarefa: ${task.titulo} · origem ${task.origem} · agente ${agent.id || agent.nome} · modelo ${model} · contexto ${context.files.length} arquivo(s)`);
+  log(`Tarefa: ${task.titulo} · origem ${task.origem} · agente ${agent.id || agent.nome} · ${provedor}/${modelo} · contexto ${context.files.length} arquivo(s)`);
 
   let result;
   try {
-    result = await callModel({ fetchImpl, token, model, messages, maxTokens: config.max_tokens });
+    if (!apiKey) throw Object.assign(new Error('secret ausente'), { kind: 'missing_key' });
+    result = await callModel({ fetchImpl, provedor, baseUrl, apiKey, model: modelo, messages, maxTokens: config.max_tokens });
   } catch (error) {
-    const reason = classifyError(error, model);
-    const detail = clean(error?.message).slice(0, 300);
-    const body = `### ${agent.nome || agent.id} não concluiu a tarefa\n\n${reason}\n\n<sub>HTTP ${error?.status || '—'}${error?.code ? ' · ' + clean(error.code) : ''} · ${detail}${runUrl ? ` · [execução](${runUrl})` : ''}</sub>`;
-    await summary([...steps.map(s => `- ${s}`), '', body].join('\n'));
+    const reason = classifyError(error, modelo);
+    const detail = error?.kind === 'missing_key' ? 'secret ausente' : clean(error?.message).slice(0, 300);
+    const secretLink = error?.kind === 'missing_key' && repo ? ` · [criar o secret](${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/settings/secrets/actions/new)` : '';
+    const body = `### ${agent.nome || agent.id} não concluiu a tarefa\n\n${reason}\n\n<sub>${provedor}/${modelo} · HTTP ${error?.status || '—'}${error?.code ? ' · ' + clean(error.code) : ''} · ${detail}${secretLink}${runUrl ? ` · [execução](${runUrl})` : ''}</sub>`;
+    await summary([...steps.map(s => `- ${s}`), steps.length ? '' : null, body].filter(v => v !== null).join('\n'));
     if (task.numero) await api('POST', `/repos/${repo}/issues/${task.numero}/comments`, { body });
     log(body);
     return { status: 'failed', reason, httpStatus: error?.status || null };
   }
 
   const header = task.smoke ? `### Teste de conexão aprovado · ${agent.nome || agent.id}` : `### ${agent.nome || agent.id} · Mesa dos Agentes`;
-  const body = `${header}\n\n${result.answer}\n\n---\n${footer({ model: result.model, usage: result.usage, files: context.files, runUrl })}`;
+  const body = `${header}\n\n${result.answer}\n\n---\n${footer({ model: result.model, provedor, usage: result.usage, files: context.files, runUrl })}`;
   await summary([...steps.map(s => `- ${s}`), steps.length ? '' : null, body].filter(v => v !== null).join('\n'));
   if (task.numero) {
     const posted = await api('POST', `/repos/${repo}/issues/${task.numero}/comments`, { body });
@@ -306,7 +355,7 @@ export async function main({ env = process.env, fetchImpl = fetch, log = console
     }
   }
   log(body);
-  return { status: 'done', model: result.model, usage: result.usage, files: context.files, agent: agent.id };
+  return { status: 'done', model: result.model, provedor, usage: result.usage, files: context.files, agent: agent.id };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {

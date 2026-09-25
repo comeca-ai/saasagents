@@ -1,5 +1,7 @@
 {
-  "modelo": "openai/gpt-4.1-mini",
+  "provedor": "anthropic",
+  "modelo": "claude-sonnet-5",
+  "base_url": "",
   "max_tokens": 1500,
   "contexto": {
     "arquivos": ["README.md", "BACKLOG.md", "STATUS.md", "package.json"],

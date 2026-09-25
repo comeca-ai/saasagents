@@ -5,7 +5,7 @@ Repositório exclusivo: https://github.com/comeca-ai/saasagents. Pasta desta ins
 
 ## Versão GitHub Actions (sem Cloudflare)
 
-A Mesa dos Agentes também roda inteira no GitHub Actions do cliente: Issue com a label `agente` → workflow `agentes.yml` → GitHub Models com o `GITHUB_TOKEN` do job → comentário na Issue. Sem Worker, sem D1 e sem secrets. A instalação é guiada pela página `interface/`; detalhes em [docs/ACTIONS.md](docs/ACTIONS.md).
+A Mesa dos Agentes também roda inteira no GitHub Actions do cliente: Issue com a label `agente` → workflow `agentes.yml` → modelo de IA com a chave do próprio cliente (secret `SAASAGENTS_API_KEY`) → comentário na Issue. Sem Worker e sem D1. A instalação é guiada pela página `interface/`; detalhes em [docs/ACTIONS.md](docs/ACTIONS.md).
 
 ## v0
 
